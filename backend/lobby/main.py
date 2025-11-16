@@ -28,7 +28,7 @@ client = docker.from_env()
 # --- CONFIG ---
 WORLD_CAPACITY = 10
 WORLD_LIFETIME = 60        # seconds worlds stay alive
-PLAYER_TIMEOUT = 5         # seconds until player considered disconnected
+PLAYER_TIMEOUT = 3         # seconds until player considered disconnected
 BASE_PORT = 20000
 
 # --- STATE ---
