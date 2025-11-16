@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
 import FollowCam from "./game/FollowCam";
 
+import nipplejs from "nipplejs";
+
+
 function PlayerSphere({ pos }) {
     return (
         <mesh position={[pos.x, pos.y, pos.z]}>
@@ -11,7 +14,7 @@ function PlayerSphere({ pos }) {
     );
 }
 
-export default function Game({ pid, ws, heartbeat }) {
+export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
 
@@ -31,6 +34,7 @@ export default function Game({ pid, ws, heartbeat }) {
         ws.onclose = () => {
             if (heartbeat.current)
                 clearInterval(heartbeat.current);
+            setSession(null);
         };
     }, [ws, pid]);
 
@@ -50,28 +54,78 @@ export default function Game({ pid, ws, heartbeat }) {
         return () => window.removeEventListener("keydown", handleKey);
     }, [ws, pid]);
 
+    // Joystick movement (for phone)
+    useEffect(() => {
+        const zone = document.getElementById("joystick-zone");
+
+        const manager = nipplejs.create({
+            zone: zone,
+            mode: "dynamic",
+            color: "white",
+        });
+
+        manager.on("move", (evt, data) => {
+            if (!data?.direction) return;
+            const dir = data.direction.angle; // up / down / left / right
+
+            let key = null;
+            if (dir === "up") key = "w";
+            if (dir === "down") key = "s";
+            if (dir === "left") key = "a";
+            if (dir === "right") key = "d";
+
+            if (key) {
+                ws.send(JSON.stringify({
+                    type: "move",
+                    pid,
+                    key
+                }));
+            }
+        });
+
+        return () => manager.destroy();
+    }, [ws, pid]);
+
+
     return (
-        <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
-            <ambientLight intensity={1} />
-            <directionalLight position={[10, 20, 10]} />
+        <>
+            <div id="joystick-zone"
+                style={{
+                    position: "fixed",
+                    background: "rgba(0,0,0,0.1)",
+                    top: "20px",
+                    left: "20px",
+                    width: "150px",
+                    height: "150px",
+                    zIndex: 10
+                }}>
+            </div>
 
-            {/* FOLLOW CAMERA */}
-            <FollowCam target={myPos} />
 
-            {/* Ground */}
-            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-                <planeGeometry args={[200, 200]} />
-                <meshStandardMaterial color="#555" />
-            </mesh>
+            <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
+                <ambientLight intensity={1} />
+                <directionalLight position={[10, 20, 10]} />
 
-            {/* Other players */}
-            {Object.entries(players).map(([id, p]) => {
-                if (id == pid) return null;
-                return <PlayerSphere key={id} pos={p} />;
-            })}
+                {/* FOLLOW CAMERA */}
+                <FollowCam target={myPos} />
 
-            {/* You */}
-            <PlayerSphere pos={myPos} />
-        </Canvas>
+                {/* Ground */}
+                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
+                    <planeGeometry args={[200, 200]} />
+                    <meshStandardMaterial color="#555" />
+                </mesh>
+
+                {/* Other players */}
+                {Object.entries(players).map(([id, p]) => {
+                    if (id == pid) return null;
+                    return <PlayerSphere key={id} pos={p} />;
+                })}
+
+                {/* You */}
+                <PlayerSphere pos={myPos} />
+            </Canvas>
+        </>
+
     );
+
 }

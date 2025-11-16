@@ -5,7 +5,7 @@ app = FastAPI()
 
 # Player storage
 players = {}            # { pid: {"x":0,"y":0.5,"z":0, "ws":WebSocket} }
-SPEED = 0.2             # movement speed per tick
+SPEED = 0.1             # movement speed per tick
 
 
 # ---------------------------------------
@@ -54,7 +54,7 @@ async def world_loop():
     while True:
         if players:
             await broadcast_state()
-        await asyncio.sleep(0.05)  # 20 updates/sec
+        await asyncio.sleep(0.01)  
 
 
 @app.on_event("startup")

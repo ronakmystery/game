@@ -73,7 +73,7 @@ export default function JoinWorld({ onJoin }) {
             <input
                 ref={usernameRef}
                 placeholder="Enter username"
-                style={{ padding: "6px", width: "70%" }}
+                style={{ padding: "6px" }}
             />
 
             <button onClick={joinWorld} style={{ padding: "6px 12px", marginLeft: 10 }}>

@@ -13,6 +13,7 @@ export default function App() {
         <Game
             pid={session.pid}
             ws={session.ws}
+            setSession={setSession}
             heartbeat={session.heartbeat}
             username={session.username}
         />
