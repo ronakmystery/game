@@ -81,7 +81,7 @@ def delete_world(world):
 
 
 EMPTY_TIMEOUT = 3     # world empty deletion
-HARD_EXPIRE = 10      # world lifetime max
+HARD_EXPIRE = 60      # world lifetime max
 
 def cleanup_expired_worlds():
     now = time.time()
