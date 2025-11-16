@@ -1,105 +1,74 @@
 import { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
-import FollowCam from "./game/FollowCam";
+import * as THREE from "three";
 import nipplejs from "nipplejs";
-import WorldBoundary from "./game/WorldBoundary";
-import AnimatedFBX from "./AnimatedFBX.jsx";
 
+import FollowCam from "./game/FollowCam";
+import AnimatedFBX from "./AnimatedFBX.jsx";
 import EnvironmentFloor from "./game/EnvironmentFloor.jsx";
 
+import ItemModel from "./game/ItemModel.jsx"; // heal + bomb items
 
-import * as THREE from "three";
-
-import Potion from "./game/Potion.jsx";
-
-
+import { HealEffect, BombEffect } from "./game/Effects.jsx";
 
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
+    const [items, setItems] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
     const [hp, setHp] = useState(100);
-
     const [rotation, setRotation] = useState([0, 0, 0]);
-    const targetRot = useRef(0);
 
-    const [potions, setPotions] = useState({});
+    const [inventory, setInventory] = useState({ heal: 0, bomb: 0 });
 
-
-
-
+    const [phase, setPhase] = useState("play");
+    const [timer, setTimer] = useState(70);
+    const [winner, setWinner] = useState(null);
     const [usernames, setUsernames] = useState({});
-
 
     const oldPlayers = useRef({});
     const oldZombies = useRef({});
 
+    const [effects, setEffects] = useState([]);
+
+    const [leaderboard, setLeaderboard] = useState([]);
 
 
-
-
-    // NEW STATE FOR ROUND SYSTEM
-    const [phase, setPhase] = useState("play");
-    const [timer, setTimer] = useState(70);
-    const [winner, setWinner] = useState(null);
-
-
-    // Store latest position safely for movement useEffect
-    const myPosRef = useRef(myPos);
-    useEffect(() => { myPosRef.current = myPos }, [myPos]);
-
-    // -----------------------------
+    // ----------------------------------------
     // HANDLE WS MESSAGES
-    // -----------------------------
+    // ----------------------------------------
     useEffect(() => {
         ws.onmessage = evt => {
             const msg = JSON.parse(evt.data);
 
-
-            // ---------------------------
-            // 📌 1. Handle DEATH message
-            // ---------------------------
+            // Death screen
             if (msg.type === "death") {
                 alert("❌ YOU DIED!");
-
                 if (heartbeat.current) clearInterval(heartbeat.current);
-
-                setSession(null);     // Exit game session or go to menu
-                return;               // <--- IMPORTANT so we STOP processing STATE
+                setSession(null);
+                return;
             }
 
-
             if (msg.type === "state") {
+                // ---------------- Players ----------------
+                const updatedPlayers = msg.players || {};
 
-
-
-
-                const updated = msg.players || {};
-
-                // compute facing direction for each remote player
-                Object.entries(updated).forEach(([id, p]) => {
-                    if (id == pid) return; // skip yourself
+                Object.entries(updatedPlayers).forEach(([id, p]) => {
+                    if (id == pid) return;
 
                     const prev = oldPlayers.current[id];
-
                     if (prev) {
                         const dx = p.x - prev.x;
                         const dz = p.z - prev.z;
 
-                        // moving?
-                        if (Math.abs(dx) > 0.0005 || Math.abs(dz) > 0.0005) {
-                            // compute angle from movement vector
+                        if (Math.abs(dx) > 0.001 || Math.abs(dz) > 0.001)
                             p.rotation = Math.atan2(dx, -dz);
-                        } else {
-                            // standing still → keep old angle
+                        else
                             p.rotation = prev.rotation ?? 0;
-                        }
                     } else {
-                        // first time seeing this player
                         p.rotation = 0;
                     }
 
-                    // Save current position + rotation
                     oldPlayers.current[id] = {
                         x: p.x,
                         z: p.z,
@@ -107,30 +76,25 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     };
                 });
 
+                setPlayers(updatedPlayers);
 
-                setPlayers(updated)
-
-                // --- COMPUTE ZOMBIE ROTATION ---
+                // ---------------- Zombies ----------------
                 const updatedZombies = msg.zombies || {};
-
                 Object.entries(updatedZombies).forEach(([id, z]) => {
                     const prev = oldZombies.current[id];
-
                     if (prev) {
                         const dx = z.x - prev.x;
                         const dz = z.z - prev.z;
 
-                        // If zombie moved, calculate direction
-                        if (Math.abs(dx) > 0.0005 || Math.abs(dz) > 0.0005) {
+                        if (Math.abs(dx) > 0.001 || Math.abs(dz) > 0.001)
                             z.rotation = Math.atan2(dx, -dz);
-                        } else {
+                        else
                             z.rotation = prev.rotation ?? 0;
-                        }
+
                     } else {
                         z.rotation = 0;
                     }
 
-                    // Save for next frame
                     oldZombies.current[id] = {
                         x: z.x,
                         z: z.z,
@@ -140,24 +104,28 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
                 setZombies(updatedZombies);
 
+                setLeaderboard(msg.leaderboard);
 
+                // ---------------- Items ----------------
+                setItems(msg.items || {});
 
-                setPotions(msg.potions || {});
+                // ---------------- Round logic ----------------
                 setPhase(msg.phase);
                 setTimer(msg.timer);
                 setWinner(msg.winner);
 
-                // Extract usernames
-                const nameMap = {};
-                for (const id in msg.players) {
-                    nameMap[id] = msg.players[id].username;
-                }
-                setUsernames(nameMap);
+                // ---------------- Usernames ----------------
+                const map = {};
+                for (const id in msg.players)
+                    map[id] = msg.players[id].username;
 
+                setUsernames(map);
 
+                // ---------------- Self data ----------------
                 if (msg.players[pid]) {
                     setMyPos(msg.players[pid]);
                     setHp(msg.players[pid].hp);
+                    setInventory(msg.players[pid].inventory);
                 }
             }
         };
@@ -166,37 +134,28 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             if (heartbeat.current) clearInterval(heartbeat.current);
             setSession(null);
         };
-    }, [ws, pid]);
+    }, [ws]);
 
-    const MAX_RADIUS = 30;
-
-    function insideCircle(x, z) {
-        return (x * x + z * z) <= (MAX_RADIUS * MAX_RADIUS);
-    }
-
-    // -----------------------------
+    // ----------------------------------------
     // JOYSTICK MOVEMENT
-    // -----------------------------
+    // ----------------------------------------
     useEffect(() => {
         const zone = document.getElementById("joystick-zone");
         const manager = nipplejs.create({
             zone,
             mode: "dynamic",
-            color: "white",
+            color: "white"
         });
-        manager.on("move", (evt, data) => {
+
+        manager.on("move", (_, data) => {
             if (!data?.vector) return;
 
-            const vx = data.vector.x;   // horizontal joystick movement
-            const vz = data.vector.y;   // vertical joystick movement
+            const vx = data.vector.x;
+            const vz = data.vector.y;
 
-            // Convert joystick vector → 3D model rotation
             const angle = Math.atan2(vx, -vz);
-
-            // Apply rotation directly
             setRotation([0, angle, 0]);
 
-            // Movement keys to backend (optional)
             const dir = data.direction?.angle;
             let key = null;
             if (dir === "up") key = "w";
@@ -204,143 +163,210 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             if (dir === "left") key = "a";
             if (dir === "right") key = "d";
 
-            if (key) {
-                ws.send(JSON.stringify({ type: "move", pid, key }));
-            }
+            if (key) ws.send(JSON.stringify({ type: "move", pid, key }));
         });
 
-
         return () => manager.destroy();
-    }, [ws, pid, phase]);
+    }, []);
 
-    // -----------------------------
-    // WINNER SCREEN (results phase)
-    // -----------------------------
+    // ----------------------------------------
+    // Inventory buttons
+    // ----------------------------------------
+    function useHeal() {
+        if (inventory.heal > 0)
+            ws.send(JSON.stringify({ type: "use_heal", pid }));
+        setEffects(e => [...e, { type: "heal", pos: myPos }]);
+
+    }
+
+    function useBomb() {
+        if (inventory.bomb > 0)
+            ws.send(JSON.stringify({ type: "use_bomb", pid }));
+        setEffects(e => [...e, { type: "bomb", pos: myPos }]);
+    }
+
     const showResults = (phase === "results");
 
     return (
         <>
-            {/* JOYSTICK */}
-            <div id="joystick-zone"
-                style={{
-                    position: "fixed",
-                    background: "rgba(0,0,0,0.1)",
-                    bottom: "20px",
-                    left: "20px",
-                    right: "20px",
-                    margin: "auto",
-                    width: "150px",
-                    height: "150px",
-                    borderRadius: "50%",
-                    zIndex: 10
-                }} />
+            <div className="leaderboard">
+                {leaderboard.map((p, i) => (
+                    <div key={p.pid}>
+                        #{i + 1} {p.username}: {p.kills} kills (HP {p.hp})
+                    </div>
+                ))}
+            </div>
 
-            {/* HP */}
+
+            {/* ----------------------------------------
+                Joystick
+            ---------------------------------------- */}
+            <div id="joystick-zone" style={{
+                position: "fixed",
+                bottom: 20, left: 20,
+                width: 150, height: 150,
+                background: "rgba(255,255,255,0.05)",
+                borderRadius: "50%",
+                zIndex: 10
+            }} />
+
+            {/* ----------------------------------------
+                HP
+            ---------------------------------------- */}
             <div style={{
                 position: "fixed",
-                top: 20,
-                left: 20,
-                fontSize: 24,
+                top: 20, left: 20,
                 color: "lime",
+                fontSize: 26,
                 zIndex: 10
             }}>
                 HP: {hp}
             </div>
 
-            {/* TIMER */}
-            {
-                !showResults && phase !== "waiting" && <div style={{
+            {/* Inventory UI */}
+            <div style={{
+                position: "fixed",
+                bottom: 20,
+                right: 20,
+                zIndex: 10,
+                display: "flex",
+                flexDirection: "column",
+                gap: "10px"
+            }}>
+                <button
+                    disabled={inventory.heal <= 0}
+                    onClick={useHeal}
+                    style={{ padding: "10px 20px", fontSize: 20 }}
+                >
+                    HEAL ({inventory.heal})
+                </button>
+
+
+                <button
+                    disabled={inventory.bomb <= 0}
+                    onClick={useBomb}
+                    style={{ padding: "10px 20px", fontSize: 20 }}
+                >
+                    BOMB ({inventory.bomb})
+                </button>
+            </div>
+
+            {/* ----------------------------------------
+                Timer
+            ---------------------------------------- */}
+            {!showResults && phase !== "waiting" && (
+                <div style={{
                     position: "fixed",
                     top: 20,
                     right: 20,
-                    fontSize: 32,
                     color: "red",
+                    fontSize: 30,
                     zIndex: 10
                 }}>
                     {Math.ceil(timer)}
                 </div>
-            }
+            )}
+
+            {/* ----------------------------------------
+                Waiting screen
+            ---------------------------------------- */}
             {phase === "waiting" && (
                 <div style={{
                     position: "fixed",
                     inset: 0,
-                    background: "rgba(0,0,0,0.8)",
+                    background: "rgba(0,0,0,0.85)",
                     color: "white",
+                    fontSize: 40,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center",
-                    zIndex: 50,
-                    fontSize: 40
+                    zIndex: 50
                 }}>
-                    <div>Waiting for players...</div>
-                    <div style={{ marginTop: 20, fontSize: 60 }}>
-                        {Math.ceil(timer) - 60}
-                    </div>
+                    Waiting for players...
                 </div>
             )}
 
-
-
-
+            {/* ----------------------------------------
+                Results screen
+            ---------------------------------------- */}
             {showResults && (
                 <div style={{
                     position: "fixed",
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    background: "rgba(0,0,0,0.85)",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.9)",
                     color: "white",
+                    fontSize: 40,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center",
-                    fontSize: 40,
                     zIndex: 50
                 }}>
-
                     <div>ROUND OVER</div>
-
-                    <div style={{ marginTop: 20, fontSize: 50, color: winner === pid ? "#00ff00" : "white" }}>
-                        {winner === pid
-                            ? "YOU WIN!"
-                            : `Winner: ${usernames[winner] ?? "None"}`}
+                    <div style={{
+                        fontSize: 60,
+                        marginTop: 20,
+                        color: winner === pid ? "lime" : "white"
+                    }}>
+                        {winner === pid ? "YOU WIN!" :
+                            "Winner: " + (usernames[winner] || "None")}
                     </div>
-
-
                 </div>
             )}
 
-
-            <Canvas camera={{ position: [0, 5, 10], fov: 50 }}
+            {/* ----------------------------------------
+                3D WORLD
+            ---------------------------------------- */}
+            <Canvas
+                camera={{ position: [0, 5, 10], fov: 55 }}
                 shadows
-                gl={{ antialias: true }}
-
                 onCreated={(state) => {
-                    state.scene.fog = new THREE.Fog("#151515", 15, 80);
-                    state.scene.background = new THREE.Color("#0c0c0c");
+                    state.scene.background = new THREE.Color("#0e0e0e");
+                    state.scene.fog = new THREE.Fog("#0e0e0e", 15, 80);
                 }}
             >
+
+
+                {effects.map((fx, i) => {
+                    if (fx.type === "heal") {
+                        return (
+                            <HealEffect
+                                key={i}
+                                pos={fx.pos}
+                                onDone={() => {
+                                    setEffects(effects => effects.filter((_, idx) => idx !== i));
+                                }}
+                            />
+                        );
+                    }
+
+                    if (fx.type === "bomb") {
+                        return (
+                            <BombEffect
+                                key={i}
+                                pos={fx.pos}
+                                onDone={() => {
+                                    setEffects(effects => effects.filter((_, idx) => idx !== i));
+                                }}
+                            />
+                        );
+                    }
+                })}
                 <ambientLight intensity={1} />
                 <directionalLight
                     castShadow
-                    position={[15, 30, 10]}
-                    intensity={1.5}
+                    position={[15, 30, 15]}
+                    intensity={1.6}
                     shadow-mapSize-width={2048}
                     shadow-mapSize-height={2048}
-                    shadow-camera-near={0.1}
-                    shadow-camera-far={80}
-                    shadow-camera-left={-20}
-                    shadow-camera-right={20}
-                    shadow-camera-top={20}
-                    shadow-camera-bottom={-20}
                 />
-
-
 
                 <FollowCam target={myPos} />
 
+                <EnvironmentFloor receiveShadow scale={12} />
 
-                <EnvironmentFloor receiveShadow scale={10} position={[0, 0, 0]} />
-
+                {/* Zombies */}
                 {Object.entries(zombies).map(([id, z]) => (
                     <AnimatedFBX
                         key={id}
@@ -351,12 +377,9 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     />
                 ))}
 
-
-
-                {/* OTHER PLAYERS */}
+                {/* Other players */}
                 {Object.entries(players).map(([id, p]) => {
                     if (id == pid) return null;
-
                     return (
                         <AnimatedFBX
                             key={id}
@@ -368,22 +391,18 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     );
                 })}
 
-
-                {/* YOUR PLAYER */}
+                {/* You */}
                 <AnimatedFBX
-                    url={"/models/run.fbx"}     // we'll compute this next
+                    url="/models/run.fbx"
                     scale={0.01}
                     position={myPos}
                     rotation={rotation}
                 />
 
-                {Object.entries(potions).map(([id, pot]) => (
-                    <Potion key={id} pos={pot} />
+                {/* Items */}
+                {Object.entries(items).map(([id, it]) => (
+                    <ItemModel key={id} item={it} />
                 ))}
-
-
-
-
             </Canvas>
         </>
     );
