@@ -22,5 +22,20 @@ services:
     networks:
       - game-net
 
+      # -----------------------------
+  # FRONTEND (Vite)
+  # -----------------------------
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: ["npm", "run", "dev"]
+    networks:
+      - game-net
+
 networks:
   game-net:

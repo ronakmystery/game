@@ -80,30 +80,41 @@ def delete_world(world):
         pass
 
 
-EMPTY_TIMEOUT = 3   # seconds world must be empty before deletion
+EMPTY_TIMEOUT = 3     # world empty deletion
+HARD_EXPIRE = 10      # world lifetime max
 
 def cleanup_expired_worlds():
     now = time.time()
     expired = []
 
     for w in worlds:
-        # WORLD IS EMPTY
+
+        # 1. Hard expiration (priority 1)
+        if now - w["created_at"] >= HARD_EXPIRE:
+            expired.append(w)
+            continue
+
+        # 2. Early deletion if empty (priority 2)
         if w["players"] == 0:
-            # mark when it became empty
+
+            # Start empty timer
             if "empty_since" not in w:
                 w["empty_since"] = now
-            else:
-                # delete if empty too long
-                if now - w["empty_since"] >= EMPTY_TIMEOUT:
-                    expired.append(w)
+                continue
+
+            # If empty long enough → delete
+            if now - w["empty_since"] >= EMPTY_TIMEOUT:
+                expired.append(w)
+                continue
         else:
-            # reset empty timer because world has players
+            # Reset empty timer because players returned
             w.pop("empty_since", None)
 
-    # Delete worlds
+    # Perform deletion
     for w in expired:
         delete_world(w)
         worlds.remove(w)
+
 
 
 
