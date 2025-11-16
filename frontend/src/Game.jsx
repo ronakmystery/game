@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import FollowCam from "./game/FollowCam";
-
 import nipplejs from "nipplejs";
-
 import WorldBoundary from "./game/WorldBoundary";
 
 function PlayerSphere({ pos }) {
@@ -17,13 +15,22 @@ function PlayerSphere({ pos }) {
 
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
+    const [zombies, setZombies] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
     const [hp, setHp] = useState(100);
 
+    // NEW STATE FOR ROUND SYSTEM
+    const [phase, setPhase] = useState("play");
+    const [timer, setTimer] = useState(70);
+    const [winner, setWinner] = useState(null);
 
-    const [zombies, setZombies] = useState({});
+    // Store latest position safely for movement useEffect
+    const myPosRef = useRef(myPos);
+    useEffect(() => { myPosRef.current = myPos }, [myPos]);
 
-    // Handle WS messages
+    // -----------------------------
+    // HANDLE WS MESSAGES
+    // -----------------------------
     useEffect(() => {
         ws.onmessage = evt => {
             const msg = JSON.parse(evt.data);
@@ -31,74 +38,54 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             if (msg.type === "state") {
                 setPlayers(msg.players || {});
                 setZombies(msg.zombies || {});
+                setPhase(msg.phase);
+                setTimer(msg.timer);
+                setWinner(msg.winner);
+
                 if (msg.players[pid]) {
                     setMyPos(msg.players[pid]);
                     setHp(msg.players[pid].hp);
-
                 }
             }
         };
 
         ws.onclose = () => {
-            if (heartbeat.current)
-                clearInterval(heartbeat.current);
+            if (heartbeat.current) clearInterval(heartbeat.current);
             setSession(null);
         };
     }, [ws, pid]);
 
-    const MAX_RADIUS = 50;   // match backend radius
+    const MAX_RADIUS = 30;
 
     function insideCircle(x, z) {
         return (x * x + z * z) <= (MAX_RADIUS * MAX_RADIUS);
     }
 
-
-
-    // Movement
-    useEffect(() => {
-        function handleKey(e) {
-            if (!["w", "a", "s", "d"].includes(e.key)) return;
-
-            let nx = myPos.x;
-            let nz = myPos.z;
-            // Block movement OUTSIDE circle
-            if (!insideCircle(nx, nz)) return;
-
-            ws.send(JSON.stringify({
-                type: "move",
-                pid,
-                key: e.key
-            }));
-        }
-
-        window.addEventListener("keydown", handleKey);
-        return () => window.removeEventListener("keydown", handleKey);
-    }, [ws, pid]);
-
-    // Joystick movement (for phone)
+    // -----------------------------
+    // JOYSTICK MOVEMENT
+    // -----------------------------
     useEffect(() => {
         const zone = document.getElementById("joystick-zone");
-
         const manager = nipplejs.create({
-            zone: zone,
+            zone,
             mode: "dynamic",
             color: "white",
         });
 
         manager.on("move", (evt, data) => {
-            if (!data?.direction) return;
-            const dir = data.direction.angle; // up / down / left / right
+            if (phase !== "play") return;
 
+            if (!data?.direction) return;
+
+            const dir = data.direction.angle;
             let key = null;
             if (dir === "up") key = "w";
             if (dir === "down") key = "s";
             if (dir === "left") key = "a";
             if (dir === "right") key = "d";
 
-            let nx = myPos.x;
-            let nz = myPos.z;
-            // Block movement OUTSIDE circle
-            if (!insideCircle(nx, nz)) return;
+            let { x, z } = myPosRef.current;
+            if (!insideCircle(x, z)) return;
 
             if (key) {
                 ws.send(JSON.stringify({
@@ -110,11 +97,16 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
         });
 
         return () => manager.destroy();
-    }, [ws, pid]);
+    }, [ws, pid, phase]);
 
+    // -----------------------------
+    // WINNER SCREEN (results phase)
+    // -----------------------------
+    const showResults = (phase === "results");
 
     return (
         <>
+            {/* JOYSTICK */}
             <div id="joystick-zone"
                 style={{
                     position: "fixed",
@@ -127,33 +119,67 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     height: "150px",
                     borderRadius: "50%",
                     zIndex: 10
-                }}>
-            </div>
+                }} />
 
+            {/* HP */}
             <div style={{
                 position: "fixed",
                 top: 20,
                 left: 20,
                 fontSize: 24,
-                color: "green",
+                color: "lime",
                 zIndex: 10
             }}>
                 HP: {hp}
             </div>
 
+            {/* TIMER */}
+            {
+                !showResults && <div style={{
+                    position: "fixed",
+                    top: 20,
+                    right: 20,
+                    fontSize: 32,
+                    color: "black",
+                    zIndex: 10
+                }}>
+                    {Math.ceil(timer) - 3}
+                </div>
+            }
 
+
+            {/* RESULTS OVERLAY */}
+            {showResults && (
+                <div style={{
+                    position: "fixed",
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    background: "rgba(0,0,0,0.85)",
+                    color: "white",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    fontSize: 40,
+                    zIndex: 50
+                }}>
+                    <div>ROUND OVER</div>
+                    <div style={{ marginTop: 20, fontSize: 50 }}>
+                        Winner: {winner ?? "None"}
+                    </div>
+                    <div style={{ marginTop: 40 }}>
+                        Next round in {Math.ceil(timer)}s
+                    </div>
+                </div>
+            )}
 
             <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
                 <ambientLight intensity={1} />
                 <directionalLight position={[10, 20, 10]} />
 
-                <WorldBoundary radius={50} />
+                <WorldBoundary radius={MAX_RADIUS} />
 
-
-                {/* FOLLOW CAMERA */}
                 <FollowCam target={myPos} />
 
-                {/* Ground */}
                 <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
                     <planeGeometry args={[200, 200]} />
                     <meshStandardMaterial color="#555" />
@@ -166,17 +192,13 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     </mesh>
                 ))}
 
-                {/* Other players */}
                 {Object.entries(players).map(([id, p]) => {
                     if (id == pid) return null;
                     return <PlayerSphere key={id} pos={p} />;
                 })}
 
-                {/* You */}
                 <PlayerSphere pos={myPos} />
             </Canvas>
         </>
-
     );
-
 }

@@ -32,7 +32,7 @@ client = docker.from_env()
 
 # --- CONFIG ---
 WORLD_CAPACITY = 10
-WORLD_LIFETIME = 60        # seconds worlds stay alive
+WORLD_LIFETIME = 63        # seconds worlds stay alive
 PLAYER_TIMEOUT = 3         # seconds until player considered disconnected
 BASE_PORT = 20000
 
@@ -86,7 +86,7 @@ def delete_world(world):
 
 
 EMPTY_TIMEOUT = 3     # world empty deletion
-HARD_EXPIRE = 60      # world lifetime max
+HARD_EXPIRE = 63      # world lifetime max
 
 def cleanup_expired_worlds():
     now = time.time()
