@@ -158,7 +158,7 @@ async def zombie_spawner():
     global NEXT_ZID
 
     while True:
-        await asyncio.sleep(1)   # spawn every 10 seconds
+        await asyncio.sleep(3)  
 
         angle = random.random() * 2 * math.pi
         r = MAX_RADIUS - 2

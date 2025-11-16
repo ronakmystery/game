@@ -21,6 +21,15 @@ export default function AnimatedFBX({
     useEffect(() => {
         if (!model) return;
 
+
+
+        // Enable shadows on all meshes inside the FBX
+        model.traverse(obj => {
+            if (obj.isMesh) {
+                obj.castShadow = true;
+                obj.receiveShadow = true;
+            }
+        });
         // Create a mixer for THIS copy only
         mixer.current = new AnimationMixer(model);
 

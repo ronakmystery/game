@@ -8,6 +8,7 @@ import AnimatedFBX from "./AnimatedFBX.jsx";
 import EnvironmentFloor from "./game/EnvironmentFloor.jsx";
 
 
+import * as THREE from "three";
 
 
 
@@ -286,15 +287,36 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             )}
 
 
-            <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
+            <Canvas camera={{ position: [0, 5, 10], fov: 50 }}
+                shadows
+                gl={{ antialias: true }}
+
+                onCreated={(state) => {
+                    state.scene.fog = new THREE.Fog("#151515", 15, 80);
+                    state.scene.background = new THREE.Color("#0c0c0c");
+                }}
+            >
                 <ambientLight intensity={1} />
-                <directionalLight position={[10, 20, 10]} />
+                <directionalLight
+                    castShadow
+                    position={[15, 30, 10]}
+                    intensity={1.5}
+                    shadow-mapSize-width={2048}
+                    shadow-mapSize-height={2048}
+                    shadow-camera-near={0.1}
+                    shadow-camera-far={80}
+                    shadow-camera-left={-20}
+                    shadow-camera-right={20}
+                    shadow-camera-top={20}
+                    shadow-camera-bottom={-20}
+                />
+
 
 
                 <FollowCam target={myPos} />
 
 
-                <EnvironmentFloor scale={20} position={[0, -.5, 0]} />
+                <EnvironmentFloor receiveShadow scale={10} position={[0, 0, 0]} />
 
                 {Object.entries(zombies).map(([id, z]) => (
                     <AnimatedFBX
