@@ -10,7 +10,7 @@ import EnvironmentFloor from "./game/EnvironmentFloor.jsx";
 
 import * as THREE from "three";
 
-
+import Potion from "./game/Potion.jsx";
 
 
 
@@ -22,6 +22,9 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
     const [rotation, setRotation] = useState([0, 0, 0]);
     const targetRot = useRef(0);
+
+    const [potions, setPotions] = useState({});
+
 
 
 
@@ -40,6 +43,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     const [timer, setTimer] = useState(70);
     const [winner, setWinner] = useState(null);
 
+
     // Store latest position safely for movement useEffect
     const myPosRef = useRef(myPos);
     useEffect(() => { myPosRef.current = myPos }, [myPos]);
@@ -51,7 +55,24 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
         ws.onmessage = evt => {
             const msg = JSON.parse(evt.data);
 
+
+            // ---------------------------
+            // 📌 1. Handle DEATH message
+            // ---------------------------
+            if (msg.type === "death") {
+                alert("❌ YOU DIED!");
+
+                if (heartbeat.current) clearInterval(heartbeat.current);
+
+                setSession(null);     // Exit game session or go to menu
+                return;               // <--- IMPORTANT so we STOP processing STATE
+            }
+
+
             if (msg.type === "state") {
+
+
+
 
                 const updated = msg.players || {};
 
@@ -121,7 +142,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
 
 
-
+                setPotions(msg.potions || {});
                 setPhase(msg.phase);
                 setTimer(msg.timer);
                 setWinner(msg.winner);
@@ -233,7 +254,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     top: 20,
                     right: 20,
                     fontSize: 32,
-                    color: "black",
+                    color: "red",
                     zIndex: 10
                 }}>
                     {Math.ceil(timer)}
@@ -258,6 +279,8 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     </div>
                 </div>
             )}
+
+
 
 
             {showResults && (
@@ -353,6 +376,13 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     position={myPos}
                     rotation={rotation}
                 />
+
+                {Object.entries(potions).map(([id, pot]) => (
+                    <Potion key={id} pos={pot} />
+                ))}
+
+
+
 
             </Canvas>
         </>

@@ -14,6 +14,10 @@ players = {}        # pid → {"x","y","z","hp","ws","username","last_hit"}
 zombies = {}        # zid → {"x","y","z"}
 NEXT_ZID = 1
 
+potions = {}       # pid → {x,y,z}
+NEXT_POTION_ID = 1
+
+
 SPEED = 0.1
 ZOMBIE_SPEED = 0.02
 MAX_RADIUS = 30
@@ -51,7 +55,12 @@ async def broadcast_state():
         "zombies": {
             zid: {"x": z["x"], "y": z["y"], "z": z["z"]}
             for zid, z in zombies.items()
+        },
+
+        "potions": {pid: {"x": p["x"], "y": p["y"], "z": p["z"]}
+            for pid, p in potions.items()
         }
+
     }
 
     dead_ws = []
@@ -130,25 +139,47 @@ def update_zombies():
 # ------------------------------
 # ZOMBIE DAMAGE
 # ------------------------------
-def zombie_damage_check():
+# ------------------------------
+async def zombie_damage_check():
     now = time.time()
+    dead_players = []              # store dead to remove later
 
     for zid, z in zombies.items():
         zx, zz = z["x"], z["z"]
 
-        for pid, p in players.items():
+        for pid, p in list(players.items()):
             dx = p["x"] - zx
             dz = p["z"] - zz
             dist = math.sqrt(dx*dx + dz*dz)
 
-            if dist < 1.0:
+            if dist < 1.0:  # hit range
                 last = p.get("last_hit", 0)
 
                 if now - last > 0.5:
-                    p["hp"] -= 1
+                    dmg = random.randint(5, 15)
+                    p["hp"] -= dmg
                     p["last_hit"] = now
-                    if p["hp"] < 0:
+
+
+                    # DEATH CHECK
+                    if p["hp"] <= 0:
                         p["hp"] = 0
+                        dead_players.append(pid)
+
+    # REMOVE DEAD PLAYERS
+    for pid in dead_players:
+        p = players.get(pid)
+        if not p:
+            continue
+
+        print(f"💀 Player {pid} died!")
+
+        try:
+            await p["ws"].send_json({"type": "death"})
+        except:
+            pass
+
+        players.pop(pid, None)
 
 
 # ------------------------------
@@ -176,6 +207,41 @@ async def zombie_spawner():
         }
 
         print(f"🧟 Spawned zombie {zid} at ({x:.1f}, {z:.1f})")
+
+
+async def potion_spawner():
+    global NEXT_POTION_ID
+    while True:
+        await asyncio.sleep(5)  # spawn every 5 sec
+
+        angle = random.random() * 2 * math.pi
+        r = random.uniform(5, MAX_RADIUS - 2)
+
+        x = math.cos(angle) * r
+        z = math.sin(angle) * r
+
+        pid = NEXT_POTION_ID
+        NEXT_POTION_ID += 1
+
+        potions[pid] = {"x": x, "y": 0.5, "z": z}
+        print(f"🧪 Potion spawned {pid} at ({x:.1f}, {z:.1f})")
+
+def potion_pickup_check():
+    remove_ids = []
+
+    for potid, pot in potions.items():
+        for pid, p in players.items():
+            dx = p["x"] - pot["x"]
+            dz = p["z"] - pot["z"]
+            dist = math.sqrt(dx*dx + dz*dz)
+
+            if dist < 1.2:  # pickup radius
+                p["hp"] = min(100, p["hp"] + random.randint(5, 20))  # heal
+                print(f"🧃 Player {pid} picked potion {potid}")
+                remove_ids.append(potid)
+
+    for rid in remove_ids:
+        potions.pop(rid, None)
 
 
 # ------------------------------
@@ -230,7 +296,8 @@ async def world_loop():
     while True:
         if players and phase == "play":
             update_zombies()
-            zombie_damage_check()
+            await zombie_damage_check()
+            potion_pickup_check()
 
         await broadcast_state()
         await asyncio.sleep(0.01)
@@ -244,6 +311,7 @@ async def startup_event():
     asyncio.create_task(world_loop())
     asyncio.create_task(zombie_spawner())
     asyncio.create_task(round_timer_loop())
+    asyncio.create_task(potion_spawner())
 
 
 # ------------------------------
