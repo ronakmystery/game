@@ -27,6 +27,8 @@ round_start = time.time()
 phase = "play"        # "play" or "results"
 winner_pid = None
 
+WAIT_TIME = 3        # wait before play begins
+
 
 # ------------------------------
 # BROADCAST STATE
@@ -39,10 +41,10 @@ async def broadcast_state():
         "type": "state",
         "phase": phase,
         "timer": remaining,
-        "winner": players[winner_pid]["username"] if winner_pid and winner_pid in players else None,
+        "winner": winner_pid,
 
         "players": {
-            pid: {"x": p["x"], "y": p["y"], "z": p["z"], "hp": p["hp"]}
+            pid: {"x": p["x"], "y": p["y"], "z": p["z"], "hp": p["hp"], "username": p["username"]}
             for pid, p in players.items()
         },
 
@@ -194,9 +196,6 @@ def compute_winner():
     return best_pid
 
 
-# ------------------------------
-# ROUND TIMER LOOP
-# ------------------------------
 async def round_timer_loop():
     global round_start, phase, winner_pid
 
@@ -204,26 +203,25 @@ async def round_timer_loop():
         now = time.time()
         elapsed = now - round_start
 
-        # ---- PLAY (0–60s) ----
-        if elapsed < PLAY_TIME:
+        # ---- WAITING (0–3s) ----
+        if elapsed < WAIT_TIME:
+            phase = "waiting"
+            winner_pid = None
+
+        # ---- PLAY (3–63s) ----
+        elif elapsed < WAIT_TIME + PLAY_TIME:
             phase = "play"
             winner_pid = None
 
-        # ---- RESULTS (60–63s) ----
-        elif elapsed < ROUND_TIME:
+        # ---- RESULTS (63–66s) ----
+        elif elapsed < WAIT_TIME + ROUND_TIME:
             if phase != "results":
                 phase = "results"
                 winner_pid = compute_winner()
-
-                if winner_pid and winner_pid in players:
-                    print(f"🏆 Winner: {players[winner_pid]['username']}")
-                else:
-                    print("🏆 Winner: None (everyone dead?)")
-
+                print(f"🏆 Winner: {players[winner_pid]['username'] if winner_pid else 'None'}")
 
 
         await asyncio.sleep(0.2)
-
 
 # ------------------------------
 # MAIN WORLD LOOP (100 FPS)

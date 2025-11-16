@@ -4,20 +4,83 @@ import FollowCam from "./game/FollowCam";
 import nipplejs from "nipplejs";
 import WorldBoundary from "./game/WorldBoundary";
 
-function PlayerSphere({ pos }) {
+import NameTag from "./NameTag.jsx";
+
+function PixelZombie({ z }) {
     return (
-        <mesh position={[pos.x, pos.y, pos.z]}>
-            <sphereGeometry args={[0.5, 16, 16]} />
-            <meshStandardMaterial color="red" />
-        </mesh>
+        <group position={[z.x, z.y, z.z]}>
+
+
+            {/* BODY */}
+            <mesh position={[0, 0.8, 0]}>
+                <boxGeometry args={[0.6, 1, 0.4]} />
+                <meshStandardMaterial color="purple" />
+            </mesh>
+
+            {/* HEAD */}
+            <mesh position={[0, 1.6, 0]}>
+                <boxGeometry args={[0.5, 0.5, 0.5]} />
+                <meshStandardMaterial color="purple" />
+            </mesh>
+        </group>
     );
 }
+
+
+function PixelPlayer({ pos, color = "red", username }) {
+    return (
+        <group position={[pos.x, pos.y, pos.z]}>
+            <NameTag text={username} />
+
+
+            {/* BODY */}
+            <mesh position={[0, 0.8, 0]}>
+                <boxGeometry args={[0.6, 1, 0.4]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* HEAD */}
+            <mesh position={[0, 1.6, 0]}>
+                <boxGeometry args={[0.5, 0.5, 0.5]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* LEFT LEG */}
+            <mesh position={[-0.18, 0.25, 0]}>
+                <boxGeometry args={[0.25, 0.6, 0.25]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* RIGHT LEG */}
+            <mesh position={[0.18, 0.25, 0]}>
+                <boxGeometry args={[0.25, 0.6, 0.25]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* LEFT ARM */}
+            <mesh position={[-0.45, 0.9, 0]}>
+                <boxGeometry args={[0.25, 0.8, 0.25]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+
+            {/* RIGHT ARM */}
+            <mesh position={[0.45, 0.9, 0]}>
+                <boxGeometry args={[0.25, 0.8, 0.25]} />
+                <meshStandardMaterial color={color} />
+            </mesh>
+        </group>
+    );
+}
+
 
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
     const [hp, setHp] = useState(100);
+
+    const [usernames, setUsernames] = useState({});
+
 
     // NEW STATE FOR ROUND SYSTEM
     const [phase, setPhase] = useState("play");
@@ -41,6 +104,14 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 setPhase(msg.phase);
                 setTimer(msg.timer);
                 setWinner(msg.winner);
+
+                // Extract usernames
+                const nameMap = {};
+                for (const id in msg.players) {
+                    nameMap[id] = msg.players[id].username;
+                }
+                setUsernames(nameMap);
+
 
                 if (msg.players[pid]) {
                     setMyPos(msg.players[pid]);
@@ -135,7 +206,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
             {/* TIMER */}
             {
-                !showResults && <div style={{
+                !showResults && phase !== "waiting" && <div style={{
                     position: "fixed",
                     top: 20,
                     right: 20,
@@ -143,12 +214,30 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     color: "black",
                     zIndex: 10
                 }}>
-                    {Math.ceil(timer) - 3}
+                    {Math.ceil(timer)}
                 </div>
             }
+            {phase === "waiting" && (
+                <div style={{
+                    position: "fixed",
+                    inset: 0,
+                    background: "rgba(0,0,0,0.8)",
+                    color: "white",
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    zIndex: 50,
+                    fontSize: 40
+                }}>
+                    <div>Waiting for players...</div>
+                    <div style={{ marginTop: 20, fontSize: 60 }}>
+                        {Math.ceil(timer) - 60}
+                    </div>
+                </div>
+            )}
 
 
-            {/* RESULTS OVERLAY */}
             {showResults && (
                 <div style={{
                     position: "fixed",
@@ -162,15 +251,19 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     fontSize: 40,
                     zIndex: 50
                 }}>
+
                     <div>ROUND OVER</div>
-                    <div style={{ marginTop: 20, fontSize: 50 }}>
-                        Winner: {winner ?? "None"}
+
+                    <div style={{ marginTop: 20, fontSize: 50, color: winner === pid ? "#00ff00" : "white" }}>
+                        {winner === pid
+                            ? "YOU WIN!"
+                            : `Winner: ${usernames[winner] ?? "None"}`}
                     </div>
-                    <div style={{ marginTop: 40 }}>
-                        Next round in {Math.ceil(timer)}s
-                    </div>
+
+
                 </div>
             )}
+
 
             <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
                 <ambientLight intensity={1} />
@@ -186,18 +279,29 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 </mesh>
 
                 {Object.entries(zombies).map(([id, z]) => (
-                    <mesh key={id} position={[z.x, z.y, z.z]}>
-                        <sphereGeometry args={[0.6, 16, 16]} />
-                        <meshStandardMaterial color="green" />
-                    </mesh>
+                    <PixelZombie key={id} z={z} />
+
                 ))}
 
                 {Object.entries(players).map(([id, p]) => {
-                    if (id == pid) return null;
-                    return <PlayerSphere key={id} pos={p} />;
+                    if (id == pid) return null;  // skip yourself
+                    return (
+                        <PixelPlayer
+                            key={id}
+                            pos={p}
+                            username={p.username}
+                            color="red"
+                        />
+                    );
                 })}
 
-                <PlayerSphere pos={myPos} />
+                <PixelPlayer
+                    pos={myPos}
+                    username={players[pid]?.username || "You"}
+                    color="green"
+                />
+
+
             </Canvas>
         </>
     );
