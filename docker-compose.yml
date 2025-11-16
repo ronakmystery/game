@@ -1,0 +1,26 @@
+services:
+  lobby:
+    build: ./backend/lobby
+    container_name: lobby
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      worldbuilder:
+        condition: service_completed_successfully
+    networks:
+      - game-net
+
+  worldbuilder:
+    image: docker:latest
+    container_name: worldbuilder
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./backend/world:/src
+    entrypoint: ["docker", "build", "-t", "world:latest", "/src"]
+    networks:
+      - game-net
+
+networks:
+  game-net:
