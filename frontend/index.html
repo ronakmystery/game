@@ -9,6 +9,7 @@
 
     <h2>Simple World Join Demo</h2>
 
+    <input id="name" placeholder="Enter username">
     <button onclick="joinWorld()">Join World</button>
 
     <pre id="log"></pre>
@@ -19,17 +20,23 @@
         }
 
         async function joinWorld() {
+            const username = document.getElementById("name").value || "Guest";
+
             log("Requesting world from lobby...");
 
-            const res = await fetch("http://localhost:8000/join");
+            const res = await fetch("http://localhost:8000/join", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username })
+            });
+
             const data = await res.json();
 
             const pid = data.player_id;
+            const wsUrl = data.assigned_world.ws_url;
 
             log("Assigned world:");
             log(JSON.stringify(data, null, 2));
-
-            const wsUrl = data.assigned_world.ws_url;
             log("Connecting WS: " + wsUrl);
 
             const ws = new WebSocket(wsUrl);
@@ -37,13 +44,14 @@
             ws.onopen = () => {
                 log("Connected to world!");
 
-                // Send message
-                setTimeout(() => {
-                    ws.send("hello world!");
-                    log("Sent: hello world!");
-                }, 2000);
+                // Send initial join event to the world server
+                ws.send(JSON.stringify({
+                    type: "join",
+                    pid,
+                    username
+                }));
 
-                // 🔥 Automatic heartbeat every 2 seconds
+                // Heartbeat every 2 seconds
                 setInterval(() => {
                     fetch(`http://localhost:8000/heartbeat/${pid}`, { method: "POST" })
                         .catch(err => log("Heartbeat failed: " + err));
@@ -51,17 +59,9 @@
                 }, 2000);
             };
 
-            ws.onmessage = (msg) => {
-                log("World event: " + msg.data);
-            };
-
-            ws.onclose = () => {
-                log("Disconnected from world");
-            };
-
-            ws.onerror = (err) => {
-                log("WebSocket error: " + err);
-            };
+            ws.onmessage = (msg) => log("World event: " + msg.data);
+            ws.onclose = () => log("Disconnected from world");
+            ws.onerror = err => log("WebSocket error: " + err);
         }
     </script>
 

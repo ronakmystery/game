@@ -16,6 +16,12 @@ app.add_middleware(
 )
 
 
+from pydantic import BaseModel
+
+class JoinRequest(BaseModel):
+    username: str
+
+
 
 client = docker.from_env()
 
@@ -153,9 +159,8 @@ threading.Thread(target=background_cleaner, daemon=True).start()
 
 # ------------------ API ENDPOINTS ------------------
 
-@app.get("/join")
-def join():
-    """Create player and assign to a world."""
+@app.post("/join")
+def join(req: JoinRequest):
     global player_counter
     player_counter += 1
     pid = player_counter
@@ -163,8 +168,11 @@ def join():
     world = get_available_world()
     if world is None:
         world = create_world()
+    
+    time.sleep(3)
 
     players[pid] = {
+        "username": req.username,
         "world": world["id"],
         "last": time.time()
     }
@@ -176,11 +184,12 @@ def join():
 
     return {
         "player_id": pid,
+        "username": req.username,
         "assigned_world": {
             "id": world["id"],
             "name": world["name"],
             "url": f"http://localhost:{world['port']}",
-            "ws_url": f"ws://localhost:{world['port']}/ws?pid={pid}",
+            "ws_url": f"ws://localhost:{world['port']}/ws?pid={pid}&username={req.username}",
             "port": world["port"],
             "players": world["players"],
             "time_left": time_left
@@ -221,6 +230,7 @@ def list_players():
             "id": pid,
             "world": players[pid]["world"],
             "last_seen": round(now - players[pid]["last"], 2),
+            "username": players[pid]["username"]
         }
         for pid in players
     ]
@@ -260,7 +270,6 @@ def debug():
     </head>
 
     <body>
-        <h1>Game Lobby Debug Dashboard</h1>
 
         <div class="section">
             <h2>Active Worlds</h2>

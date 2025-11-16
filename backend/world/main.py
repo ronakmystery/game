@@ -1,37 +1,31 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-import time
+from fastapi import FastAPI, WebSocket
 
 app = FastAPI()
 
-# 💾 Store connected players
-players = {}   # pid -> websocket connection
-
-@app.get("/")
-def home():
-    return {"msg": "world is running", "players": list(players.keys())}
-
 @app.websocket("/ws")
-async def ws_endpoint(ws: WebSocket, pid: int):
+async def websocket_endpoint(ws: WebSocket, pid: int, username: str):
     await ws.accept()
-    players[pid] = ws
 
-    print(f"🟢 Player {pid} joined world")
+    print(f"🟢 Player joined: pid={pid}, username={username}")
 
-    # Notify existing players
-    for other_pid, other_ws in players.items():
-        if other_pid != pid:
-            await other_ws.send_json({"event": "player_joined", "id": pid})
+    # Tell the player they joined
+    await ws.send_json({
+        "type": "welcome",
+        "message": f"Welcome {username}!",
+        "pid": pid
+    })
 
+    # Keep receiving messages
     try:
         while True:
             msg = await ws.receive_text()
-            print(f"Player {pid} says: {msg}")
+            print(f"Message from {username}: {msg}")
 
-    except WebSocketDisconnect:
-        # Player left
-        del players[pid]
-        print(f"🔴 Player {pid} left world")
+            # Echo it back to the player (simple demo)
+            await ws.send_json({
+                "from": username,
+                "echo": msg
+            })
 
-        # Notify others
-        for other_ws in players.values():
-            await other_ws.send_json({"event": "player_left", "id": pid})
+    except Exception:
+        print(f"🔴 Player disconnected: {username}")
