@@ -22,6 +22,11 @@ class JoinRequest(BaseModel):
     username: str
 
 
+import socket
+
+def get_host_ip():
+    return "10.226.221.105"
+
 
 client = docker.from_env()
 
@@ -169,6 +174,7 @@ threading.Thread(target=background_cleaner, daemon=True).start()
 
 
 # ------------------ API ENDPOINTS ------------------
+HOST = get_host_ip()
 
 @app.post("/join")
 def join(req: JoinRequest):
@@ -199,8 +205,8 @@ def join(req: JoinRequest):
         "assigned_world": {
             "id": world["id"],
             "name": world["name"],
-            "url": f"http://localhost:{world['port']}",
-            "ws_url": f"ws://localhost:{world['port']}/ws?pid={pid}&username={req.username}",
+            "url": f"http://{HOST}:{world['port']}",
+            "ws_url": f"ws://{HOST}:{world['port']}/ws?pid={pid}&username={req.username}",
             "port": world["port"],
             "players": world["players"],
             "time_left": time_left
