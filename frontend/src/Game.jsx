@@ -4,76 +4,10 @@ import FollowCam from "./game/FollowCam";
 import nipplejs from "nipplejs";
 import WorldBoundary from "./game/WorldBoundary";
 import AnimatedFBX from "./AnimatedFBX.jsx";
-import NameTag from "./NameTag.jsx";
+
+import EnvironmentFloor from "./game/EnvironmentFloor.jsx";
 
 
-
-
-function PixelZombie({ z }) {
-    return (
-        <group position={[z.x, z.y, z.z]}>
-
-
-            {/* BODY */}
-            <mesh position={[0, 0.8, 0]}>
-                <boxGeometry args={[0.6, 1, 0.4]} />
-                <meshStandardMaterial color="purple" />
-            </mesh>
-
-            {/* HEAD */}
-            <mesh position={[0, 1.6, 0]}>
-                <boxGeometry args={[0.5, 0.5, 0.5]} />
-                <meshStandardMaterial color="purple" />
-            </mesh>
-        </group>
-    );
-}
-
-
-function PixelPlayer({ pos, color = "red", username }) {
-    return (
-        <group position={[pos.x, pos.y, pos.z]}>
-            <NameTag text={username} />
-
-
-            {/* BODY */}
-            <mesh position={[0, 0.8, 0]}>
-                <boxGeometry args={[0.6, 1, 0.4]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-
-            {/* HEAD */}
-            <mesh position={[0, 1.6, 0]}>
-                <boxGeometry args={[0.5, 0.5, 0.5]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-
-            {/* LEFT LEG */}
-            <mesh position={[-0.18, 0.25, 0]}>
-                <boxGeometry args={[0.25, 0.6, 0.25]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-
-            {/* RIGHT LEG */}
-            <mesh position={[0.18, 0.25, 0]}>
-                <boxGeometry args={[0.25, 0.6, 0.25]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-
-            {/* LEFT ARM */}
-            <mesh position={[-0.45, 0.9, 0]}>
-                <boxGeometry args={[0.25, 0.8, 0.25]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-
-            {/* RIGHT ARM */}
-            <mesh position={[0.45, 0.9, 0]}>
-                <boxGeometry args={[0.25, 0.8, 0.25]} />
-                <meshStandardMaterial color={color} />
-            </mesh>
-        </group>
-    );
-}
 
 
 
@@ -89,10 +23,13 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     const targetRot = useRef(0);
 
 
+
     const [usernames, setUsernames] = useState({});
 
 
     const oldPlayers = useRef({});
+    const oldZombies = useRef({});
+
 
 
 
@@ -148,12 +85,42 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     };
                 });
 
+
                 setPlayers(updated)
 
+                // --- COMPUTE ZOMBIE ROTATION ---
+                const updatedZombies = msg.zombies || {};
+
+                Object.entries(updatedZombies).forEach(([id, z]) => {
+                    const prev = oldZombies.current[id];
+
+                    if (prev) {
+                        const dx = z.x - prev.x;
+                        const dz = z.z - prev.z;
+
+                        // If zombie moved, calculate direction
+                        if (Math.abs(dx) > 0.0005 || Math.abs(dz) > 0.0005) {
+                            z.rotation = Math.atan2(dx, -dz);
+                        } else {
+                            z.rotation = prev.rotation ?? 0;
+                        }
+                    } else {
+                        z.rotation = 0;
+                    }
+
+                    // Save for next frame
+                    oldZombies.current[id] = {
+                        x: z.x,
+                        z: z.z,
+                        rotation: z.rotation
+                    };
+                });
+
+                setZombies(updatedZombies);
 
 
-                setPlayers(msg.players || {});
-                setZombies(msg.zombies || {});
+
+
                 setPhase(msg.phase);
                 setTimer(msg.timer);
                 setWinner(msg.winner);
@@ -323,19 +290,24 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 <ambientLight intensity={1} />
                 <directionalLight position={[10, 20, 10]} />
 
-                <WorldBoundary radius={MAX_RADIUS} />
 
                 <FollowCam target={myPos} />
 
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
-                    <planeGeometry args={[200, 200]} />
-                    <meshStandardMaterial color="#555" />
-                </mesh>
+
+                <EnvironmentFloor scale={20} position={[0, -.5, 0]} />
 
                 {Object.entries(zombies).map(([id, z]) => (
-                    <PixelZombie key={id} z={z} />
-
+                    <AnimatedFBX
+                        key={id}
+                        url="/models/zombie.fbx"
+                        scale={0.025}
+                        position={z}
+                        rotation={[0, z.rotation || 0, 0]}
+                    />
                 ))}
+
+
+
                 {/* OTHER PLAYERS */}
                 {Object.entries(players).map(([id, p]) => {
                     if (id == pid) return null;

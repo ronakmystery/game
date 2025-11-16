@@ -9,8 +9,8 @@ export default function FollowCam({ target }) {
 
         const desired = [
             target.x,
-            target.y + 20,      // height above
-            target.z + 40       // distance behind
+            target.y + 15,      // height above
+            target.z + 30       // distance behind
         ];
 
         // Smooth camera movement (lerp)
