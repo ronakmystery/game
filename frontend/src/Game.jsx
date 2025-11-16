@@ -4,6 +4,7 @@ import FollowCam from "./game/FollowCam";
 
 import nipplejs from "nipplejs";
 
+import WorldBoundary from "./game/WorldBoundary";
 
 function PlayerSphere({ pos }) {
     return (
@@ -17,6 +18,10 @@ function PlayerSphere({ pos }) {
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
+    const [hp, setHp] = useState(100);
+
+
+    const [zombies, setZombies] = useState({});
 
     // Handle WS messages
     useEffect(() => {
@@ -25,8 +30,11 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
             if (msg.type === "state") {
                 setPlayers(msg.players || {});
+                setZombies(msg.zombies || {});
                 if (msg.players[pid]) {
                     setMyPos(msg.players[pid]);
+                    setHp(msg.players[pid].hp);
+
                 }
             }
         };
@@ -38,10 +46,23 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
         };
     }, [ws, pid]);
 
+    const MAX_RADIUS = 50;   // match backend radius
+
+    function insideCircle(x, z) {
+        return (x * x + z * z) <= (MAX_RADIUS * MAX_RADIUS);
+    }
+
+
+
     // Movement
     useEffect(() => {
         function handleKey(e) {
             if (!["w", "a", "s", "d"].includes(e.key)) return;
+
+            let nx = myPos.x;
+            let nz = myPos.z;
+            // Block movement OUTSIDE circle
+            if (!insideCircle(nx, nz)) return;
 
             ws.send(JSON.stringify({
                 type: "move",
@@ -74,6 +95,11 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             if (dir === "left") key = "a";
             if (dir === "right") key = "d";
 
+            let nx = myPos.x;
+            let nz = myPos.z;
+            // Block movement OUTSIDE circle
+            if (!insideCircle(nx, nz)) return;
+
             if (key) {
                 ws.send(JSON.stringify({
                     type: "move",
@@ -93,18 +119,36 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 style={{
                     position: "fixed",
                     background: "rgba(0,0,0,0.1)",
-                    top: "20px",
+                    bottom: "20px",
                     left: "20px",
+                    right: "20px",
+                    margin: "auto",
                     width: "150px",
                     height: "150px",
+                    borderRadius: "50%",
                     zIndex: 10
                 }}>
             </div>
+
+            <div style={{
+                position: "fixed",
+                top: 20,
+                left: 20,
+                fontSize: 24,
+                color: "green",
+                zIndex: 10
+            }}>
+                HP: {hp}
+            </div>
+
 
 
             <Canvas camera={{ position: [0, 5, 10], fov: 50 }}>
                 <ambientLight intensity={1} />
                 <directionalLight position={[10, 20, 10]} />
+
+                <WorldBoundary radius={50} />
+
 
                 {/* FOLLOW CAMERA */}
                 <FollowCam target={myPos} />
@@ -114,6 +158,13 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     <planeGeometry args={[200, 200]} />
                     <meshStandardMaterial color="#555" />
                 </mesh>
+
+                {Object.entries(zombies).map(([id, z]) => (
+                    <mesh key={id} position={[z.x, z.y, z.z]}>
+                        <sphereGeometry args={[0.6, 16, 16]} />
+                        <meshStandardMaterial color="green" />
+                    </mesh>
+                ))}
 
                 {/* Other players */}
                 {Object.entries(players).map(([id, p]) => {

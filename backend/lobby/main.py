@@ -185,8 +185,6 @@ def join(req: JoinRequest):
     world = get_available_world()
     if world is None:
         world = create_world()
-    
-    time.sleep(3)
 
     players[pid] = {
         "username": req.username,
