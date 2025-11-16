@@ -46,7 +46,7 @@ export function HealEffect({ pos, onDone }) {
             {particles.current.map((p, i) => (
                 <mesh
                     key={i}
-                    position={[p.x, p.y + (1 - life), p.z]}
+                    position={[p.x, p.y + (2 - life), p.z]}
                     scale={0.08}
                 >
                     <sphereGeometry args={[1, 8, 8]} />
@@ -79,7 +79,7 @@ export function BombEffect({ pos, onDone }) {
     const size = (1 - life) * 6; // shockwave expands
 
     return (
-        <group position={[pos.x, pos.y + 0.2, pos.z]}>
+        <group position={[pos.x, pos.y + 2, pos.z]}>
             {/* shockwave */}
             <mesh ref={shockRef} rotation={[-Math.PI / 2, 0, 0]} scale={size}>
                 <ringGeometry args={[0.5, 1, 32]} />

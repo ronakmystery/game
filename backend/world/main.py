@@ -171,7 +171,7 @@ async def zombie_damage_check():
 
             if dist < 1.0:
                 if now - p.get("last_hit", 0) > 0.5:
-                    p["hp"] -= random.randint(5, 15)
+                    p["hp"] -= random.randint(1,10)
                     p["last_hit"] = now
 
                     if p["hp"] <= 0:
