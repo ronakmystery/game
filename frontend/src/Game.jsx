@@ -3,8 +3,11 @@ import { Canvas } from "@react-three/fiber";
 import FollowCam from "./game/FollowCam";
 import nipplejs from "nipplejs";
 import WorldBoundary from "./game/WorldBoundary";
-
+import AnimatedFBX from "./AnimatedFBX.jsx";
 import NameTag from "./NameTag.jsx";
+
+
+
 
 function PixelZombie({ z }) {
     return (
@@ -73,13 +76,25 @@ function PixelPlayer({ pos, color = "red", username }) {
 }
 
 
+
+
+
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
     const [myPos, setMyPos] = useState({ x: 0, y: 0.5, z: 0 });
     const [hp, setHp] = useState(100);
 
+    const [rotation, setRotation] = useState([0, 0, 0]);
+    const targetRot = useRef(0);
+
+
     const [usernames, setUsernames] = useState({});
+
+
+    const oldPlayers = useRef({});
+
+
 
 
     // NEW STATE FOR ROUND SYSTEM
@@ -99,6 +114,44 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             const msg = JSON.parse(evt.data);
 
             if (msg.type === "state") {
+
+                const updated = msg.players || {};
+
+                // compute facing direction for each remote player
+                Object.entries(updated).forEach(([id, p]) => {
+                    if (id == pid) return; // skip yourself
+
+                    const prev = oldPlayers.current[id];
+
+                    if (prev) {
+                        const dx = p.x - prev.x;
+                        const dz = p.z - prev.z;
+
+                        // moving?
+                        if (Math.abs(dx) > 0.0005 || Math.abs(dz) > 0.0005) {
+                            // compute angle from movement vector
+                            p.rotation = Math.atan2(dx, -dz);
+                        } else {
+                            // standing still → keep old angle
+                            p.rotation = prev.rotation ?? 0;
+                        }
+                    } else {
+                        // first time seeing this player
+                        p.rotation = 0;
+                    }
+
+                    // Save current position + rotation
+                    oldPlayers.current[id] = {
+                        x: p.x,
+                        z: p.z,
+                        rotation: p.rotation
+                    };
+                });
+
+                setPlayers(updated)
+
+
+
                 setPlayers(msg.players || {});
                 setZombies(msg.zombies || {});
                 setPhase(msg.phase);
@@ -142,30 +195,31 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             mode: "dynamic",
             color: "white",
         });
-
         manager.on("move", (evt, data) => {
-            if (phase !== "play") return;
+            if (!data?.vector) return;
 
-            if (!data?.direction) return;
+            const vx = data.vector.x;   // horizontal joystick movement
+            const vz = data.vector.y;   // vertical joystick movement
 
-            const dir = data.direction.angle;
+            // Convert joystick vector → 3D model rotation
+            const angle = Math.atan2(vx, -vz);
+
+            // Apply rotation directly
+            setRotation([0, angle, 0]);
+
+            // Movement keys to backend (optional)
+            const dir = data.direction?.angle;
             let key = null;
             if (dir === "up") key = "w";
             if (dir === "down") key = "s";
             if (dir === "left") key = "a";
             if (dir === "right") key = "d";
 
-            let { x, z } = myPosRef.current;
-            if (!insideCircle(x, z)) return;
-
             if (key) {
-                ws.send(JSON.stringify({
-                    type: "move",
-                    pid,
-                    key
-                }));
+                ws.send(JSON.stringify({ type: "move", pid, key }));
             }
         });
+
 
         return () => manager.destroy();
     }, [ws, pid, phase]);
@@ -282,25 +336,29 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     <PixelZombie key={id} z={z} />
 
                 ))}
-
+                {/* OTHER PLAYERS */}
                 {Object.entries(players).map(([id, p]) => {
-                    if (id == pid) return null;  // skip yourself
+                    if (id == pid) return null;
+
                     return (
-                        <PixelPlayer
+                        <AnimatedFBX
                             key={id}
-                            pos={p}
-                            username={p.username}
-                            color="red"
+                            url="/models/run.fbx"
+                            scale={0.01}
+                            position={p}
+                            rotation={[0, p.rotation || 0, 0]}
                         />
                     );
                 })}
 
-                <PixelPlayer
-                    pos={myPos}
-                    username={players[pid]?.username || "You"}
-                    color="green"
-                />
 
+                {/* YOUR PLAYER */}
+                <AnimatedFBX
+                    url={"/models/run.fbx"}     // we'll compute this next
+                    scale={0.01}
+                    position={myPos}
+                    rotation={rotation}
+                />
 
             </Canvas>
         </>
