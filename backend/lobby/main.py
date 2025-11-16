@@ -4,11 +4,24 @@ import docker
 import threading
 
 app = FastAPI()
+
+from fastapi.middleware.cors import CORSMiddleware
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],       # allow any origin (for dev)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
 client = docker.from_env()
 
 # --- CONFIG ---
 WORLD_CAPACITY = 10
-WORLD_LIFETIME = 5        # seconds worlds stay alive
+WORLD_LIFETIME = 60        # seconds worlds stay alive
 PLAYER_TIMEOUT = 5         # seconds until player considered disconnected
 BASE_PORT = 20000
 
@@ -154,6 +167,7 @@ def join():
             "id": world["id"],
             "name": world["name"],
             "url": f"http://localhost:{world['port']}",
+            "ws_url": f"ws://localhost:{world['port']}/ws?pid={pid}",
             "port": world["port"],
             "players": world["players"],
             "time_left": time_left
@@ -197,3 +211,57 @@ def list_players():
         }
         for pid in players
     ]
+
+
+from fastapi.responses import HTMLResponse
+
+@app.get("/debug", response_class=HTMLResponse)
+def debug():
+    now = time.time()
+
+    html = """
+    <html>
+    <head>
+        <title>Game Debug Dashboard</title>
+        <style>
+            body { font-family: Arial; padding: 20px; }
+            h2 { margin-top: 30px; }
+            pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
+            .section { margin-bottom: 40px; }
+        </style>
+
+        <script>
+            async function refresh() {
+                const worlds = await fetch("/worlds").then(r => r.json());
+                const players = await fetch("/players").then(r => r.json());
+
+                document.getElementById("worlds").textContent =
+                    JSON.stringify(worlds, null, 2);
+
+                document.getElementById("players").textContent =
+                    JSON.stringify(players, null, 2);
+            }
+
+            setInterval(refresh, 1000);
+            window.onload = refresh;
+        </script>
+    </head>
+
+    <body>
+        <h1>Game Lobby Debug Dashboard</h1>
+
+        <div class="section">
+            <h2>Active Worlds</h2>
+            <pre id="worlds">Loading...</pre>
+        </div>
+
+        <div class="section">
+            <h2>Active Players</h2>
+            <pre id="players">Loading...</pre>
+        </div>
+
+    </body>
+    </html>
+    """
+
+    return HTMLResponse(html)

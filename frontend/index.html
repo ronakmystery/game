@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Simple World Join</title>
+</head>
+
+<body>
+
+    <h2>Simple World Join Demo</h2>
+
+    <button onclick="joinWorld()">Join World</button>
+
+    <pre id="log"></pre>
+
+    <script>
+        function log(msg) {
+            document.getElementById("log").textContent += msg + "\n";
+        }
+
+        async function joinWorld() {
+            log("Requesting world from lobby...");
+
+            const res = await fetch("http://localhost:8000/join");
+            const data = await res.json();
+
+            const pid = data.player_id;
+
+            log("Assigned world:");
+            log(JSON.stringify(data, null, 2));
+
+            const wsUrl = data.assigned_world.ws_url;
+            log("Connecting WS: " + wsUrl);
+
+            const ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                log("Connected to world!");
+
+                // Send message
+                setTimeout(() => {
+                    ws.send("hello world!");
+                    log("Sent: hello world!");
+                }, 2000);
+
+                // 🔥 Automatic heartbeat every 2 seconds
+                setInterval(() => {
+                    fetch(`http://localhost:8000/heartbeat/${pid}`, { method: "POST" })
+                        .catch(err => log("Heartbeat failed: " + err));
+                    log("Sent heartbeat");
+                }, 2000);
+            };
+
+            ws.onmessage = (msg) => {
+                log("World event: " + msg.data);
+            };
+
+            ws.onclose = () => {
+                log("Disconnected from world");
+            };
+
+            ws.onerror = (err) => {
+                log("WebSocket error: " + err);
+            };
+        }
+    </script>
+
+</body>
+
+</html>
