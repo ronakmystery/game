@@ -74,18 +74,31 @@ def delete_world(world):
         pass
 
 
+EMPTY_TIMEOUT = 3   # seconds world must be empty before deletion
+
 def cleanup_expired_worlds():
-    """Remove worlds older than WORLD_LIFETIME."""
     now = time.time()
     expired = []
 
     for w in worlds:
-        if now - w["created_at"] > WORLD_LIFETIME:
-            expired.append(w)
+        # WORLD IS EMPTY
+        if w["players"] == 0:
+            # mark when it became empty
+            if "empty_since" not in w:
+                w["empty_since"] = now
+            else:
+                # delete if empty too long
+                if now - w["empty_since"] >= EMPTY_TIMEOUT:
+                    expired.append(w)
+        else:
+            # reset empty timer because world has players
+            w.pop("empty_since", None)
 
+    # Delete worlds
     for w in expired:
         delete_world(w)
         worlds.remove(w)
+
 
 
 # ------------------ PLAYER MANAGEMENT ------------------
@@ -222,7 +235,6 @@ def debug():
     html = """
     <html>
     <head>
-        <title>Game Debug Dashboard</title>
         <style>
             body { font-family: Arial; padding: 20px; }
             h2 { margin-top: 30px; }
