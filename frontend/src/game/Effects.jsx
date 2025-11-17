@@ -35,19 +35,15 @@ export function HealEffect({ pos, onDone }) {
     });
 
     return (
-        <group ref={ref} position={[pos.x, pos.y + 1.0, pos.z]}>
-            {/* glow sphere */}
-            <mesh scale={1 + (1 - life) * 1.5}>
-                <sphereGeometry args={[0.3, 16, 16]} />
-                <meshBasicMaterial color="#00ff55" transparent opacity={life} />
-            </mesh>
+        <group ref={ref}
+            position={[pos.x, pos.y + 1.0, pos.z]}>
 
             {/* particles */}
             {particles.current.map((p, i) => (
                 <mesh
                     key={i}
                     position={[p.x, p.y + (2 - life), p.z]}
-                    scale={0.08}
+                    scale={0.1}
                 >
                     <sphereGeometry args={[1, 8, 8]} />
                     <meshBasicMaterial color="#44ff88" transparent opacity={life} />

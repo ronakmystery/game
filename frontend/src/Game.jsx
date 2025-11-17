@@ -11,6 +11,11 @@ import ItemModel from "./game/ItemModel.jsx"; // heal + bomb items
 
 import { HealEffect, BombEffect } from "./game/Effects.jsx";
 
+import LightFlicker from "./game/LightFlicker.jsx";
+import Shadows from "./game/Shadows.jsx";
+
+import "./Game.css";
+
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
@@ -43,7 +48,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
             // Death screen
             if (msg.type === "death") {
-                alert("❌ YOU DIED!");
+                alert("💀");
                 if (heartbeat.current) clearInterval(heartbeat.current);
                 setSession(null);
                 return;
@@ -169,6 +174,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
         return () => manager.destroy();
     }, []);
 
+
     // ----------------------------------------
     // Inventory buttons
     // ----------------------------------------
@@ -189,13 +195,6 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
 
     return (
         <>
-            <div className="leaderboard">
-                {leaderboard.map((p, i) => (
-                    <div key={p.pid}>
-                        #{i + 1} {p.username}: {p.kills} kills (HP {p.hp})
-                    </div>
-                ))}
-            </div>
 
 
             {/* ----------------------------------------
@@ -205,40 +204,32 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 position: "fixed",
                 bottom: 20, left: 20,
                 width: 150, height: 150,
-                background: "rgba(255,255,255,0.05)",
+                background: "black",
+                opacity: 0.5,
                 borderRadius: "50%",
                 zIndex: 10
             }} />
 
-            {/* ----------------------------------------
-                HP
-            ---------------------------------------- */}
-            <div style={{
-                position: "fixed",
-                top: 20, left: 20,
-                color: "lime",
-                fontSize: 26,
-                zIndex: 10
-            }}>
-                HP: {hp}
-            </div>
+
 
             {/* Inventory UI */}
-            <div style={{
-                position: "fixed",
-                bottom: 20,
-                right: 20,
-                zIndex: 10,
-                display: "flex",
-                flexDirection: "column",
-                gap: "10px"
-            }}>
+            <div
+                id="inventory"
+                style={{
+                    position: "fixed",
+                    bottom: 20,
+                    right: 20,
+                    zIndex: 10,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                }}>
                 <button
                     disabled={inventory.heal <= 0}
                     onClick={useHeal}
                     style={{ padding: "10px 20px", fontSize: 20 }}
                 >
-                    HEAL ({inventory.heal})
+                    🧪 {inventory.heal}
                 </button>
 
 
@@ -247,8 +238,48 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     onClick={useBomb}
                     style={{ padding: "10px 20px", fontSize: 20 }}
                 >
-                    BOMB ({inventory.bomb})
+                    💣 {inventory.bomb}
                 </button>
+            </div>
+
+            {/* ----------------------------------------
+    HP BAR
+---------------------------------------- */}
+            <div style={{
+                position: "fixed",
+                top: 20,
+                left: 20,
+                width: 200,
+                height: 28,
+                background: "rgba(0,0,0,0.5)",
+                border: "2px solid #444",
+                borderRadius: 6,
+                overflow: "hidden",
+                zIndex: 10,
+                color: "white",
+                fontSize: 14,
+                display: "flex",
+                alignItems: "center"
+            }}>
+                <div style={{
+                    height: "100%",
+                    width: `${hp}%`,
+                    background:
+                        hp > 60 ? "limegreen" :
+                            hp > 30 ? "gold" :
+                                "red",
+                    transition: "width 0.2s ease"
+                }} />
+
+                <div style={{
+                    position: "absolute",
+                    width: "100%",
+                    textAlign: "center",
+                    fontWeight: "bold",
+                    fontSize: 16,
+                    textShadow: "0 0 4px black"
+                }}>
+                </div>
             </div>
 
             {/* ----------------------------------------
@@ -274,46 +305,73 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 <div style={{
                     position: "fixed",
                     inset: 0,
-                    background: "rgba(0,0,0,0.85)",
+                    background: "rgba(0,0,0,1)",
                     color: "white",
                     fontSize: 40,
                     display: "flex",
                     flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center",
-                    zIndex: 50
+                    zIndex: 50,
+                    width: "100%",
+                    textAlign: "center",
                 }}>
                     Waiting for players...
                 </div>
             )}
 
             {/* ----------------------------------------
-                Results screen
-            ---------------------------------------- */}
+    Results screen
+---------------------------------------- */}
             {showResults && (
-                <div style={{
-                    position: "fixed",
-                    inset: 0,
-                    background: "rgba(0,0,0,0.9)",
-                    color: "white",
-                    fontSize: 40,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    zIndex: 50
-                }}>
-                    <div>ROUND OVER</div>
-                    <div style={{
-                        fontSize: 60,
-                        marginTop: 20,
-                        color: winner === pid ? "lime" : "white"
-                    }}>
-                        {winner === pid ? "YOU WIN!" :
-                            "Winner: " + (usernames[winner] || "None")}
+                <div
+                    style={{
+                        position: "fixed",
+                        inset: 0,
+                        background: "rgba(0,0,0,0.92)",
+                        color: "white",
+                        fontSize: 40,
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 50,
+                        padding: 20
+                    }}
+                >
+
+
+                    {/* Winner text */}
+                    <div
+                        style={{
+                            fontSize: 60,
+                            marginTop: 10,
+                            color: winner === pid ? "lime" : "white"
+                        }}
+                    >
+                        {winner === pid
+                            ? "YOU WIN!"
+                            : `Winner: ${usernames?.[winner] || "None"}`}
+                    </div>
+
+                    {/* Leaderboard */}
+                    <div
+                        style={{
+                            marginTop: 40,
+                            fontSize: 28,
+                            lineHeight: "42px",
+                            textAlign: "center"
+                        }}
+                    >
+                        {(leaderboard || []).map((p, i) => (
+                            <div key={p.pid} style={{ opacity: i === 0 ? 1 : 0.8 }}>
+                                #{i + 1} {p.username} — {p.kills} kills
+                            </div>
+                        ))}
                     </div>
                 </div>
             )}
+
 
             {/* ----------------------------------------
                 3D WORLD
@@ -353,18 +411,19 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                         );
                     }
                 })}
-                <ambientLight intensity={1} />
+                <ambientLight intensity={0.15} />
                 <directionalLight
                     castShadow
-                    position={[15, 30, 15]}
-                    intensity={1.6}
+                    position={[40, 60, 40]}
+                    intensity={1}
                     shadow-mapSize-width={2048}
                     shadow-mapSize-height={2048}
                 />
-
+                <Shadows />
                 <FollowCam target={myPos} />
 
                 <EnvironmentFloor receiveShadow scale={12} />
+                <LightFlicker />
 
                 {/* Zombies */}
                 {Object.entries(zombies).map(([id, z]) => (

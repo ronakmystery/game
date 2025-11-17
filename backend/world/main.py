@@ -18,16 +18,16 @@ NEXT_ZID = 1
 NEXT_ITEM_ID = 1
 
 SPEED = 0.1
-ZOMBIE_SPEED = 0.02
+ZOMBIE_SPEED = 0.03
 MAX_RADIUS = 30
 
 # ---------------------------------------------------
 # ROUND SYSTEM
 # ---------------------------------------------------
 
-ROUND_TIME = 63
+ROUND_TIME = 65
 PLAY_TIME = 60
-WAIT_TIME = 3
+WAIT_TIME = 5
 
 round_start = time.time()
 phase = "play"
@@ -171,7 +171,7 @@ async def zombie_damage_check():
 
             if dist < 1.0:
                 if now - p.get("last_hit", 0) > 0.5:
-                    p["hp"] -= random.randint(1,10)
+                    p["hp"] -= random.randint(10, 30)
                     p["last_hit"] = now
 
                     if p["hp"] <= 0:
@@ -195,10 +195,10 @@ async def zombie_damage_check():
 async def item_spawner():
     global NEXT_ITEM_ID
     while True:
-        await asyncio.sleep(4)
+        await asyncio.sleep(5)
 
         angle = random.random() * 2 * math.pi
-        r = random.uniform(5, MAX_RADIUS - 1)
+        r = random.uniform(10, MAX_RADIUS)
 
         x = math.cos(angle) * r
         z = math.sin(angle) * r
@@ -211,7 +211,6 @@ async def item_spawner():
             "z": z,
             "type": item_type
         }
-        print(f"🔵 Spawned {item_type} #{NEXT_ITEM_ID} at ({x:.1f},{z:.1f})")
         NEXT_ITEM_ID += 1
 
 
@@ -222,7 +221,7 @@ async def zombie_spawner():
     global NEXT_ZID
 
     while True:
-        await asyncio.sleep(3)  # spawn every 3 sec
+        await asyncio.sleep(2)  
 
         angle = random.random() * 2 * math.pi
         r = MAX_RADIUS - 1      # spawn near border

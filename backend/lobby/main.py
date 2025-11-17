@@ -32,7 +32,7 @@ client = docker.from_env()
 
 # --- CONFIG ---
 WORLD_CAPACITY = 10
-WORLD_LIFETIME = 66        # seconds worlds stay alive
+WORLD_LIFETIME = 70        # seconds worlds stay alive
 PLAYER_TIMEOUT = 3         # seconds until player considered disconnected
 BASE_PORT = 20000
 
@@ -85,8 +85,8 @@ def delete_world(world):
         pass
 
 
-EMPTY_TIMEOUT = 3     # world empty deletion
-HARD_EXPIRE = 66      # world lifetime max
+EMPTY_TIMEOUT = 5     # world empty deletion
+HARD_EXPIRE = 70      # world lifetime max
 
 def cleanup_expired_worlds():
     now = time.time()
@@ -185,6 +185,8 @@ def join(req: JoinRequest):
     world = get_available_world()
     if world is None:
         world = create_world()
+
+    time.sleep(1)  # give world a moment to start
 
     players[pid] = {
         "username": req.username,

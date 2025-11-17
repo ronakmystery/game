@@ -12,13 +12,13 @@ export default function ItemModel({ item }) {
         const table = {
             heal: {
                 model: "/models/potion.glb",
-                scale: [10, 10, 10],
-                yOffset: 2,
+                scale: [15, 15, 15],
+                yOffset: 1,
             },
             bomb: {
                 model: "/models/bomb.glb",
-                scale: [.01, .01, .01],
-                yOffset: 2,
+                scale: [.5, .5, .5],
+                yOffset: 1,
             },
         };
 
