@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Debug Panel</title>
+
+    <style>
+        body {
+            font-family: Arial;
+            padding: 20px;
+            margin: 0;
+            background: #fafafa;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-top: 10px;
+        }
+
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+
+        /* SIDE-BY-SIDE LAYOUT */
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+        }
+
+        /* Mobile */
+        @media (max-width: 800px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+    </style>
+
+    <script>
+        async function refresh() {
+            try {
+                const worlds = await fetch("/worlds").then(r => r.json());
+                const players = await fetch("/players").then(r => r.json());
+
+                document.getElementById("worlds").textContent =
+                    JSON.stringify(worlds, null, 2);
+
+                document.getElementById("players").textContent =
+                    JSON.stringify(players, null, 2);
+
+            } catch (e) {
+                console.error("Refresh error", e);
+            }
+        }
+
+        setInterval(refresh, 1000);
+        window.onload = refresh;
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <div class="panel">
+            <h2>Active Worlds</h2>
+            <pre id="worlds">Loading...</pre>
+        </div>
+
+        <div class="panel">
+            <h2>Active Players</h2>
+            <pre id="players">Loading...</pre>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

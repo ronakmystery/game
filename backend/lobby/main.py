@@ -6,6 +6,15 @@ import threading
 app = FastAPI()
 
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Request
+from fastapi.templating import Jinja2Templates
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/debug")
+def debug(request: Request):
+    return templates.TemplateResponse("debug.html", {"request": request})
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -186,8 +195,6 @@ def join(req: JoinRequest):
     if world is None:
         world = create_world()
 
-    time.sleep(1)  # give world a moment to start
-
     players[pid] = {
         "username": req.username,
         "world": world["id"],
@@ -252,54 +259,3 @@ def list_players():
         for pid in players
     ]
 
-
-from fastapi.responses import HTMLResponse
-
-@app.get("/debug", response_class=HTMLResponse)
-def debug():
-    now = time.time()
-
-    html = """
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial; padding: 20px; }
-            h2 { margin-top: 30px; }
-            pre { background: #f0f0f0; padding: 10px; border-radius: 5px; }
-            .section { margin-bottom: 40px; }
-        </style>
-
-        <script>
-            async function refresh() {
-                const worlds = await fetch("/worlds").then(r => r.json());
-                const players = await fetch("/players").then(r => r.json());
-
-                document.getElementById("worlds").textContent =
-                    JSON.stringify(worlds, null, 2);
-
-                document.getElementById("players").textContent =
-                    JSON.stringify(players, null, 2);
-            }
-
-            setInterval(refresh, 1000);
-            window.onload = refresh;
-        </script>
-    </head>
-
-    <body>
-
-        <div class="section">
-            <h2>Active Worlds</h2>
-            <pre id="worlds">Loading...</pre>
-        </div>
-
-        <div class="section">
-            <h2>Active Players</h2>
-            <pre id="players">Loading...</pre>
-        </div>
-
-    </body>
-    </html>
-    """
-
-    return HTMLResponse(html)

@@ -316,6 +316,10 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     width: "100%",
                     textAlign: "center",
                 }}>
+                    <h3>  ⌛  {
+                        Math.ceil(timer - 60)
+                    }</h3>
+
                     Waiting for players...
                 </div>
             )}
@@ -415,7 +419,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 <directionalLight
                     castShadow
                     position={[40, 60, 40]}
-                    intensity={1}
+                    intensity={.7}
                     shadow-mapSize-width={2048}
                     shadow-mapSize-height={2048}
                 />

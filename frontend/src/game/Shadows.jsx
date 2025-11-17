@@ -7,7 +7,7 @@ export default function Shadows() {
             ref={dir}
             castShadow
             position={[40, 80, 40]}
-            intensity={0.6}     // base world light
+            intensity={1}     // base world light
             shadow-mapSize-width={4096}
             shadow-mapSize-height={4096}
 

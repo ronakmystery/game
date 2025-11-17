@@ -2,7 +2,7 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-RUN pip install fastapi uvicorn[standard] docker
+RUN pip install fastapi uvicorn[standard] docker jinja2
 
 COPY . .
 

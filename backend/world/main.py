@@ -21,6 +21,10 @@ SPEED = 0.1
 ZOMBIE_SPEED = 0.03
 MAX_RADIUS = 30
 
+AI_PID = -1      # special id
+AI_ENABLED = True
+
+
 # ---------------------------------------------------
 # ROUND SYSTEM
 # ---------------------------------------------------
@@ -90,6 +94,8 @@ async def broadcast_state():
     # ---------- SEND ----------
     dead_ws = []
     for pid, p in players.items():
+        if p["ws"] is None:
+            continue  # AI bot does not have websocket
         try:
             await p["ws"].send_json(state)
         except:
@@ -194,24 +200,51 @@ async def zombie_damage_check():
 # ---------------------------------------------------
 async def item_spawner():
     global NEXT_ITEM_ID
+
+    MAX_ITEMS = 20
+    MIN_DIST_FROM_PLAYER = 3.0
+
     while True:
-        await asyncio.sleep(5)
+        # random spawn interval: 4–7s
+        await asyncio.sleep(random.uniform(4, 7))
 
-        angle = random.random() * 2 * math.pi
-        r = random.uniform(10, MAX_RADIUS)
+        # don't spawn infinite items
+        if len(items) >= MAX_ITEMS:
+            continue
 
-        x = math.cos(angle) * r
-        z = math.sin(angle) * r
+        # --------------- choose item type ----------------
+        item_type = random.choices(
+            ["heal", "bomb"],
+            weights=[0.6, 0.4],  # 60% heal, 40% bomb
+            k=1
+        )[0]
 
-        item_type = random.choice(["heal", "bomb"])
+        # --------------- find a valid spawn point ----------
+        for _ in range(10):  # try up to 10 positions
+            angle = random.random() * math.pi * 2
+            r = random.uniform(10, MAX_RADIUS)
 
-        items[NEXT_ITEM_ID] = {
-            "x": x,
-            "y": 0.5,
-            "z": z,
-            "type": item_type
-        }
-        NEXT_ITEM_ID += 1
+            x = math.cos(angle) * r
+            z = math.sin(angle) * r
+
+            # ensure not too close to a player
+            ok = True
+            for pid, p in players.items():
+                dx = p["x"] - x
+                dz = p["z"] - z
+                if dx*dx + dz*dz < MIN_DIST_FROM_PLAYER**2:
+                    ok = False
+                    break
+
+            if ok:
+                items[NEXT_ITEM_ID] = {
+                    "x": x,
+                    "y": 0.5,
+                    "z": z,
+                    "type": item_type
+                }
+                NEXT_ITEM_ID += 1
+                break
 
 
 # ---------------------------------------------------
@@ -397,6 +430,7 @@ async def round_timer_loop():
 async def world_loop():
     while True:
         if players and phase == "play":
+            ai_update()
             update_zombies()
             await zombie_damage_check()
             item_pickup_check()
@@ -404,16 +438,72 @@ async def world_loop():
         await broadcast_state()
         await asyncio.sleep(0.01)
 
+def ai_update():
+    if AI_PID not in players:
+        return
+
+    ai = players[AI_PID]
+    now = time.time()
+
+    # ---------------------------------------------------
+    # 1. Pick a direction every 1–3 seconds
+    # ---------------------------------------------------
+    if now > ai["move_until"]:
+        angle = random.uniform(0, 2 * math.pi)
+        ai["vx"] = math.cos(angle) * 0.05
+        ai["vz"] = math.sin(angle) * 0.05
+
+        ai["move_until"] = now + random.uniform(1.0, 7.0)
+
+
+    # ---------------------------------------------------
+    # 3. Apply velocity (SMOOTH MOVEMENT)
+    # ---------------------------------------------------
+    ai["x"] += ai["vx"]
+    ai["z"] += ai["vz"]
+
+    # ---------------------------------------------------
+    # 4. Stay inside map
+    # ---------------------------------------------------
+    dist_center = math.sqrt(ai["x"]**2 + ai["z"]**2)
+    if dist_center > MAX_RADIUS:
+        # flip direction back inward
+        ai["vx"] = -ai["vx"]
+        ai["vz"] = -ai["vz"]
+        ai["x"] += ai["vx"]
+        ai["z"] += ai["vz"]
 
 # ---------------------------------------------------
 # STARTUP
 # ---------------------------------------------------
 @app.on_event("startup")
 async def startup_event():
+
+        # --- Create AI bot ---
+    if AI_ENABLED:
+       players[AI_PID] = {
+            "x": 5,
+            "y": 0.5,
+            "z": 5,
+            "hp": 100,
+            "ws": None,
+            "username": "AI-Bot",
+            "last_hit": 0,
+            "inventory": {"heal": 1, "bomb": 1},
+            "zkills": 0,
+
+            # NEW:
+            "vx": 0,  # velocity x
+            "vz": 0,  # velocity z
+            "move_until": 0,  # when to pick new direction
+        }
+
+
     asyncio.create_task(world_loop())
     asyncio.create_task(round_timer_loop())
     asyncio.create_task(item_spawner())
     asyncio.create_task(zombie_spawner())
+
 
 
 # ---------------------------------------------------
@@ -423,7 +513,7 @@ async def startup_event():
 async def websocket_endpoint(ws: WebSocket, pid: int, username: str):
     await ws.accept()
 
-    print(f"🟢 Player joined {pid} ({username})")
+
 
     players[pid] = {
         "x": 0,
