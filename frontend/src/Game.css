@@ -1,6 +1,222 @@
-#inventory {
+/* FONT IMPORT --------------------------------------------------------- */
+@import url("https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap");
 
-    button {
-        border-radius: 10px;
-    }
+/* MAIN WRAPPER -------------------------------------------------------- */
+#lobby-terminal {
+    padding: 20px;
+    background: #000;
+    height: 100vh;
+    color: #00ff6a;
+    font-family: "Share Tech Mono", monospace;
+    border: 2px solid #0f0;
+    box-shadow: 0 0 25px #0f0;
+    text-shadow: 0 0 4px #0f0;
+    position: relative;
+    overflow-y: auto;
+    font-size: 10px;
+}
+
+/* CRT SCANLINE OVERLAY ------------------------------------------------ */
+#lobby-terminal .crt-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: repeating-linear-gradient(to bottom,
+            rgba(0, 255, 0, 0.05) 0px,
+            rgba(0, 255, 0, 0.05) 1px,
+            transparent 1px,
+            transparent 3px);
+    opacity: 0.2;
+}
+
+/* HEADER --------------------------------------------------------------- */
+.terminal-title {
+    margin-top: 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #0f0;
+    text-shadow: 0 0 8px #00ff9d;
+}
+
+/* INPUT --------------------------------------------------------------- */
+.terminal-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #0f0;
+}
+
+.terminal-input {
+    padding: 10px;
+    width: 100%;
+    background: #050;
+    border: 1px solid #0f0;
+    color: #0f0;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 13px;
+    outline: none;
+    box-shadow: 0 0 6px #0f0 inset;
+    margin-bottom: 12px;
+    box-sizing: border-box;
+}
+
+/* BUTTON --------------------------------------------------------------- */
+.terminal-button {
+    padding: 10px 12px;
+    width: 100%;
+    background: #020;
+    border: 2px solid #0f0;
+    color: #0f0;
+    font-family: "Share Tech Mono", monospace;
+    font-size: 14px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    font-weight: bold;
+    text-shadow: 0 0 8px #0f0;
+    transition: 0.25s;
+    margin-bottom: 15px;
+    box-shadow: 0 0 12px #0f0;
+}
+
+.terminal-button.joining {
+    background: #033;
+    cursor: not-allowed;
+    opacity: 0.5;
+    box-shadow: inset 0 0 12px #0f0;
+}
+
+/* PANEL (World + Player Info) ----------------------------------------- */
+.terminal-panel {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #010;
+    border: 1px solid #0f0;
+    box-shadow: inset 0 0 12px #0f0;
+}
+
+/* LOGS --------------------------------------------------------------- */
+.terminal-log-title {
+    margin: 0;
+    margin-bottom: 6px;
+    border-bottom: 1px solid #0f0;
+    padding-bottom: 4px;
+}
+
+.terminal-logs {
+    margin-top: 5px;
+    padding: 10px;
+    background: #000;
+    height: 30px;
+    overflow-y: scroll;
+    white-space: pre-wrap;
+    border: 1px solid #0f0;
+    box-shadow: inset 0 0 10px #0f0;
+    line-height: 16px;
+}
+
+/* STATUS -------------------------------------------------------------- */
+.terminal-status {
+    margin-top: 10px;
+    font-size: 12px;
+    opacity: 0.7;
+}
+
+.terminal-status.disconnected {
+    color: #f00;
+}
+
+.terminal-status.connecting {
+    color: #0f0;
+}
+
+/* INVENTORY FIX ------------------------------------------------------ */
+/* This was invalid SCSS before — now valid CSS */
+#inventory button {
+    border-radius: 10px;
+}
+
+/* PANEL WRAPPER --------------------------- */
+.info-panel {
+    margin-top: 20px;
+    padding: 20px;
+    background: #000;
+    color: #0f0;
+    border: 2px solid #0f0;
+    box-shadow: 0 0 20px #0f0;
+}
+
+/* SUBTITLE */
+.terminal-subtitle {
+    margin-top: 0;
+    margin-bottom: 10px;
+    text-shadow: 0 0 8px #0f0;
+}
+
+/* SECTION TITLES */
+.info-section-title {
+    margin-top: 15px;
+    margin-bottom: 5px;
+    text-shadow: 0 0 4px #0f0;
+}
+
+/* EMPTY STATES */
+.info-empty {
+    opacity: 0.7;
+    font-style: italic;
+    color: #0f0;
+}
+
+/* WORLD CARD ------------------------------ */
+.world-card {
+    background: #020;
+    padding: 12px;
+    margin-top: 10px;
+    border: 1px solid #0f0;
+    box-shadow: inset 0 0 10px #0f0;
+}
+
+/* PLAYER CARD ----------------------------- */
+.player-card {
+    background: #010;
+    padding: 10px;
+    margin-top: 10px;
+    border: 1px solid #0f0;
+}
+
+/* EXPIRATION TEXT -------------------------- */
+.expires-row {
+    margin-top: 6px;
+}
+
+.expires-ok {
+    color: #0f0;
+}
+
+.expires-warn {
+    color: #f00;
+    text-shadow: 0 0 6px #f00;
+}
+
+/* DANGER METER ----------------------------- */
+.danger-meter {
+    margin-top: 8px;
+    height: 10px;
+    background: #030;
+    border: 1px solid #0f0;
+    position: relative;
+}
+
+.danger-fill {
+    height: 100%;
+}
+
+.danger-low {
+    background: #8f0;
+    box-shadow: 0 0 10px #8f0;
+}
+
+.danger-high {
+    background: #f00;
+    box-shadow: 0 0 10px #f00;
 }

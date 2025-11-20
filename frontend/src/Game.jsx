@@ -16,6 +16,7 @@ import Shadows from "./game/Shadows.jsx";
 
 import "./Game.css";
 
+import GameSounds from "./game/Sounds.jsx";
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
@@ -37,6 +38,9 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     const [effects, setEffects] = useState([]);
 
     const [leaderboard, setLeaderboard] = useState([]);
+
+
+
 
 
     // ----------------------------------------
@@ -147,9 +151,17 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     useEffect(() => {
         const zone = document.getElementById("joystick-zone");
         const manager = nipplejs.create({
-            zone,
-            mode: "dynamic",
-            color: "white"
+            zone: document.getElementById("joystick-zone"),
+            mode: "static",
+            position: { left: "80px", bottom: "80px" },
+            size: 120,
+            color: "white",
+            multitouch: false,
+            restJoystick: true,
+            maxNumberOfNipples: 1,
+            catchDistance: 150,
+            lockX: false,
+            lockY: false,
         });
 
         manager.on("move", (_, data) => {
@@ -194,7 +206,16 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     const showResults = (phase === "results");
 
     return (
+
+
         <>
+
+
+            <GameSounds
+                zombies={zombies}
+                hp={hp}
+                isRunning={true}
+            />
 
 
             {/* ----------------------------------------
@@ -203,10 +224,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
             <div id="joystick-zone" style={{
                 position: "fixed",
                 bottom: 20, left: 20,
-                width: 150, height: 150,
-                background: "black",
-                opacity: 0.5,
-                borderRadius: "50%",
+
                 zIndex: 10
             }} />
 
@@ -250,7 +268,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 top: 20,
                 left: 20,
                 width: 200,
-                height: 28,
+                height: 20,
                 background: "rgba(0,0,0,0.5)",
                 border: "2px solid #444",
                 borderRadius: 6,

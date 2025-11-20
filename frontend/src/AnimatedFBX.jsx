@@ -5,6 +5,8 @@ import { useMemo, useEffect, useRef } from "react";
 import { AnimationMixer } from "three";
 import { clone } from "three/examples/jsm/utils/SkeletonUtils";
 
+import { getFBX } from "./game/ModelCache";
+
 export default function AnimatedFBX({
     url,
     scale = 0.01,
@@ -13,24 +15,39 @@ export default function AnimatedFBX({
     rotation = [0, 0, 0],
     visible = true
 }) {
-    const original = useLoader(FBXLoader, url);
-    const model = useMemo(() => clone(original), [original]);
+    // ----------------------------------------------
+    // 1. Try cache first
+    // ----------------------------------------------
+    const cached = getFBX(url);
 
+    // ----------------------------------------------
+    // 2. Fall back to loading ONLY if cache empty
+    // ----------------------------------------------
+    const loaded = useLoader(FBXLoader, cached ? null : url);
+
+    // ----------------------------------------------
+    // 3. Pick whichever exists
+    // ----------------------------------------------
+    const source = cached || loaded;
+
+    // ----------------------------------------------
+    // 4. Clone the model so each has its own skeleton
+    // ----------------------------------------------
+    const model = useMemo(() => clone(source), [source]);
+
+    // Animation mixer
     const mixer = useRef(null);
 
     useEffect(() => {
         if (!model) return;
 
-
-
-        // Enable shadows on all meshes inside the FBX
         model.traverse(obj => {
             if (obj.isMesh) {
                 obj.castShadow = true;
                 obj.receiveShadow = true;
             }
         });
-        // Create a mixer for THIS copy only
+
         mixer.current = new AnimationMixer(model);
 
         if (model.animations?.length > 0) {
@@ -39,10 +56,7 @@ export default function AnimatedFBX({
         }
 
         return () => {
-            if (mixer.current) {
-                mixer.current.stopAllAction();
-                mixer.current = null;
-            }
+            if (mixer.current) mixer.current.stopAllAction();
         };
     }, [model]);
 
@@ -53,7 +67,11 @@ export default function AnimatedFBX({
     });
 
     return (
-        <group position={[position.x, position.y, position.z]} rotation={rotation} visible={visible}>
+        <group
+            position={[position.x, position.y, position.z]}
+            rotation={rotation}
+            visible={visible}
+        >
             <primitive object={model} scale={scale} />
         </group>
     );

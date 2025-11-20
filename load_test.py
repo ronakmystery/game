@@ -17,7 +17,7 @@ def join_user(username):
 print("\n=== 100 USERS JOIN ===\n")
 
 
-time.sleep(5)
+time.sleep(1)
 for i in range(100):
     username = f"user{i+1}"
     res = join_user(username)

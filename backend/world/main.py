@@ -18,7 +18,7 @@ NEXT_ZID = 1
 NEXT_ITEM_ID = 1
 
 SPEED = 0.1
-ZOMBIE_SPEED = 0.03
+ZOMBIE_SPEED = 0.04
 MAX_RADIUS = 30
 
 AI_PID = -1      # special id
@@ -158,9 +158,11 @@ def update_zombies():
         dz = pz - z["z"]
         dist = math.sqrt(dx*dx + dz*dz) + 1e-6
 
-        z["x"] += (dx / dist) * ZOMBIE_SPEED
-        z["z"] += (dz / dist) * ZOMBIE_SPEED
+        speed = z.get("speed", ZOMBIE_SPEED)
 
+
+        z["x"] += (dx / dist) * speed
+        z["z"] += (dz / dist) * speed
 
 # ---------------------------------------------------
 # ZOMBIE DAMAGE
@@ -254,7 +256,7 @@ async def zombie_spawner():
     global NEXT_ZID
 
     while True:
-        await asyncio.sleep(2)  
+        await asyncio.sleep(5)  # spawn every 5 seconds
 
         angle = random.random() * 2 * math.pi
         r = MAX_RADIUS - 1      # spawn near border
@@ -265,7 +267,9 @@ async def zombie_spawner():
         zombies[NEXT_ZID] = {
             "x": x,
             "y": 0.5,
-            "z": z
+            "z": z,
+            "speed": random.uniform(0.01, 0.1)   # random speed per zombie
+
         }
 
         print(f"🧟 Spawned zombie {NEXT_ZID} at ({x:.1f}, {z:.1f})")

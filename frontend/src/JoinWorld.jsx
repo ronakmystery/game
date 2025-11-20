@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import LobbyInfo from "./game/LobbyInfo";
 
 export default function JoinWorld({ onJoin }) {
     const HOST = "10.226.221.105";
@@ -16,7 +17,30 @@ export default function JoinWorld({ onJoin }) {
         setLogs(prev => prev + m + "\n");
     }
 
+    useEffect(() => {
+        const audio = new Audio("/sounds/terminal.mp3");
+        audio.loop = true;
+        audio.volume = 0.35;
+
+        // Must wait for user interaction to avoid autoplay block
+        const startAudio = () => {
+            audio.play().catch(() => { });
+            window.removeEventListener("click", startAudio);
+            window.removeEventListener("keydown", startAudio);
+        };
+
+        window.addEventListener("click", startAudio);
+        window.addEventListener("keydown", startAudio);
+
+        return () => {
+            audio.pause();
+        };
+    }, []);
+
+
+
     async function joinWorld() {
+
         if (joining) return;           // <-- prevents double click
         setJoining(true);              // <-- lock button
 
@@ -40,6 +64,7 @@ export default function JoinWorld({ onJoin }) {
 
             const ws = new WebSocket(wsUrl);
             wsRef.current = ws;
+
 
             ws.onopen = () => {
                 log("Connected to world!");
@@ -79,43 +104,44 @@ export default function JoinWorld({ onJoin }) {
     }
 
     return (
-        <div style={{ padding: 20, width: 500 }}>
+        <div id="lobby-terminal">
 
-            <input
-                ref={usernameRef}
-                placeholder="Enter username"
-                style={{ padding: "6px" }}
-            />
+            <div className="crt-overlay"></div>
+
+            <h4 className="terminal-title">[ ZOMBIE OUTBREAK MAIN TERMINAL ]</h4>
+
+            <label className="terminal-label">Enter Codename:</label>
+
+            <input ref={usernameRef} placeholder="codename" className="terminal-input" />
 
             <button
                 onClick={joinWorld}
-                disabled={joining}               // <-- NEW
-                style={{
-                    padding: "6px 12px",
-                    marginLeft: 10,
-                    opacity: joining ? 0.5 : 1, // <-- feedback
-                    cursor: joining ? "not-allowed" : "pointer"
-                }}
+                disabled={joining}
+                className={"terminal-button " + (joining ? "joining" : "")}
             >
                 {joining
-                    ? "Joining..."
+                    ? "CONNECTING..."
                     : disconnected
-                        ? "Reconnect"
-                        : "Join"}
+                        ? "RECONNECT"
+                        : "JOIN WORLD"}
             </button>
 
-            <pre
-                style={{
-                    marginTop: 20,
-                    padding: 10,
-                    background: "#eee",
-                    height: 300,
-                    overflowY: "scroll",
-                    whiteSpace: "pre-wrap"
-                }}
-            >
-                {logs}
-            </pre>
+            <div className="terminal-panel">
+                <LobbyInfo host={`http://${HOST}:8000`} />
+            </div>
+
+            <h5 className="terminal-log-title">Terminal Logs</h5>
+
+            <pre className="terminal-logs">{logs}</pre>
+
+            <div className={
+                "terminal-status " +
+                (joining ? "connecting" : disconnected ? "disconnected" : "")
+            }>
+                [ STATUS: {joining ? "CONNECTING" : disconnected ? "DISCONNECTED" : "IDLE"} ]
+            </div>
+
         </div>
     );
+
 }
