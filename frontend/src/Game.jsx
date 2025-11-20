@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import nipplejs from "nipplejs";
 
@@ -17,6 +17,9 @@ import Shadows from "./game/Shadows.jsx";
 import "./Game.css";
 
 import GameSounds from "./game/Sounds.jsx";
+import ZombieModel from "./game/ZombieGLB.jsx";
+
+import SmoothPlayer from "./game/SmoothPlayer.jsx";
 export default function Game({ pid, ws, heartbeat, setSession }) {
     const [players, setPlayers] = useState({});
     const [zombies, setZombies] = useState({});
@@ -38,8 +41,6 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
     const [effects, setEffects] = useState([]);
 
     const [leaderboard, setLeaderboard] = useState([]);
-
-
 
 
 
@@ -399,7 +400,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 3D WORLD
             ---------------------------------------- */}
             <Canvas
-                camera={{ position: [0, 5, 10], fov: 55 }}
+                camera={{ position: [0, 20, 40], fov: 30 }}
                 shadows
                 onCreated={(state) => {
                     state.scene.background = new THREE.Color("#0e0e0e");
@@ -458,6 +459,8 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     />
                 ))}
 
+
+
                 {/* Other players */}
                 {Object.entries(players).map(([id, p]) => {
                     if (id == pid) return null;
@@ -472,13 +475,18 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                     );
                 })}
 
-                {/* You */}
-                <AnimatedFBX
-                    url="/models/run.fbx"
-                    scale={0.01}
-                    position={myPos}
-                    rotation={rotation}
-                />
+                {
+                    <AnimatedFBX
+                        url="/models/run.fbx"
+                        scale={0.01}
+                        position={myPos}
+                        rotation={rotation}
+                    />
+                }
+
+                {/* <SmoothPlayer myPos={myPos} rotation={rotation} smoothFactor={.4} /> */}
+
+
 
                 {/* Items */}
                 {Object.entries(items).map(([id, it]) => (

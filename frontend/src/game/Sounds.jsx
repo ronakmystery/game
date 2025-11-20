@@ -1,122 +1,116 @@
 import { useEffect, useRef } from "react";
 
-export default function GameSounds({ zombies, hp, isRunning }) {
+export default function GameSounds({ hp, isRunning, zombies }) {
+    // Local volume multipliers
+    const RUN_VOL = 0.05;
 
-    const breathingRef = useRef(null);
-    const runningRef = useRef(null);
-    const zombieGrowlRef = useRef(null);
-    const zombieTimerRef = useRef(null);
+    const breatheRef = useRef(null);
+    const runRef = useRef(null);
 
-    // -----------------------------------------------------------
-    // INITIALIZE ALL SOUNDS ONCE
-    // -----------------------------------------------------------
+    const z1Ref = useRef(null);
+    const z2Ref = useRef(null);
+    const z3Ref = useRef(null);
+
+    // INIT SOUNDS
     useEffect(() => {
-        breathingRef.current = new Audio("/sounds/breathing.mp3");
-        breathingRef.current.loop = true;
-        breathingRef.current.volume = 0.5;
+        breatheRef.current = new Audio("/sounds/breathing.mp3");
+        runRef.current = new Audio("/sounds/running.mp3");
 
-        runningRef.current = new Audio("/sounds/running.mp3");
-        runningRef.current.loop = true;
-        runningRef.current.volume = 0;
+        z1Ref.current = new Audio("/sounds/zombie.mp3");
+        z2Ref.current = new Audio("/sounds/zombie.mp3");
+        z3Ref.current = new Audio("/sounds/zombie.mp3");
 
-        zombieGrowlRef.current = new Audio("/sounds/zombie.mp3");
-        zombieGrowlRef.current.volume = 0.1;
+        // all loops
+        for (let ref of [breatheRef, runRef, z1Ref, z2Ref, z3Ref]) {
+            ref.current.loop = true;
+        }
 
-        // Start playback after user interaction
+        runRef.current.volume = 0;
+
+        // Start after first user interaction
         const start = () => {
-            breathingRef.current?.play().catch(() => { });
-            runningRef.current?.play().catch(() => { });
+            breatheRef.current.play().catch(() => { });
+            runRef.current.play().catch(() => { });
+
+            z1Ref.current.play().catch(() => { });
+            z2Ref.current.play().catch(() => { });
+            z3Ref.current.play().catch(() => { });
+
             window.removeEventListener("click", start);
             window.removeEventListener("keydown", start);
         };
 
-        window.addEventListener("click", start);
-        window.addEventListener("keydown", start);
+        // window.addEventListener("click", start);
+        // window.addEventListener("keydown", start);
+        start();
 
         return () => {
-            breathingRef.current?.pause();
-            runningRef.current?.pause();
-            clearTimeout(zombieTimerRef.current);
+            breatheRef.current?.pause();
+            runRef.current?.pause();
+            z1Ref.current?.pause();
+            z2Ref.current?.pause();
+            z3Ref.current?.pause();
         };
     }, []);
 
-    // -----------------------------------------------------------
-    // PLAYER BREATHING (5 LEVELS)
-    // -----------------------------------------------------------
+    // BREATHING INTENSITY
     useEffect(() => {
-        if (!breathingRef.current) return;
+        if (!breatheRef.current) return;
 
-        let level = 1;
-        if (hp < 90) level = 2;
-        if (hp < 70) level = 3;
-        if (hp < 50) level = 4;
-        if (hp < 30) level = 5;
+        let lvl = 1;
+        if (hp < 90) lvl = 2;
+        if (hp < 70) lvl = 3;
+        if (hp < 50) lvl = 4;
+        if (hp < 30) lvl = 5;
 
-        // CLEAN 5-STEP VOLUME SCALE
         const volumeMap = {
-            1: 0.50,   // calm
-            2: 0.60,   // slightly heavy
-            3: 0.70,   // moderate
-            4: 0.85,   // heavy
-            5: 1.00    // panic
+            1: 0.50,
+            2: 0.60,
+            3: 0.70,
+            4: 0.80,
+            5: 0.95
         };
 
         const rateMap = {
-            1: 0.90,
+            1: 0.95,
             2: 1.00,
             3: 1.05,
             4: 1.10,
             5: 1.20
         };
 
-        breathingRef.current.volume = volumeMap[level];
-        breathingRef.current.playbackRate = rateMap[level];
-
+        breatheRef.current.volume = volumeMap[lvl];
+        breatheRef.current.playbackRate = rateMap[lvl];
     }, [hp]);
 
-
-    // -----------------------------------------------------------
-    // PLAYER RUNNING SOUND
-    // -----------------------------------------------------------
+    // RUNNING SOUND
     useEffect(() => {
-        if (!runningRef.current) return;
-
-        if (isRunning) {
-            runningRef.current.volume = 0.05;
-            runningRef.current.playbackRate = .8;
-        } else {
-            runningRef.current.volume = 0;
-        }
+        if (!runRef.current) return;
+        runRef.current.volume = isRunning ? RUN_VOL : 0;
+        runRef.current.playbackRate = isRunning ? 1.15 : 1.0;
     }, [isRunning]);
 
-    // -----------------------------------------------------------
-    // ZOMBIE RANDOM SOUND ENGINE
-    // -----------------------------------------------------------
+    // RANDOM WOBBLE on all loops every 250ms
     useEffect(() => {
-        clearTimeout(zombieTimerRef.current);
+        const jitter = setInterval(() => {
+            if (!breatheRef.current) return;
 
-        const count = zombies.length;
-        if (count === 0) return;
+            breatheRef.current.volume *= (0.97 + Math.random() * 0.06);
+            breatheRef.current.playbackRate *= (0.99 + Math.random() * 0.03);
+            z1Ref.current.volume = 0.10 * (0.85 + Math.random() * 0.20);
+            z1Ref.current.playbackRate = 0.80 + Math.random() * 0.30;
 
-        // More zombies → more frequent sound
-        const min = Math.max(800, 12000 / count);
-        const max = Math.max(1500, 18000 / count);
-        const delay = Math.random() * (max - min) + min;
+            z2Ref.current.volume = 0.05 * (0.85 + Math.random() * 0.20);   // FIXED
+            z2Ref.current.playbackRate = 0.85 + Math.random() * 0.35;
 
-        zombieTimerRef.current = setTimeout(() => {
-            if (!zombieGrowlRef.current) return;
+            z3Ref.current.volume = 0.10 * (0.90 + Math.random() * 0.22);
+            z3Ref.current.playbackRate = 0.90 + Math.random() * 0.40;
 
-            zombieGrowlRef.current.currentTime = 0;
 
-            // Slight random pitch variation
-            zombieGrowlRef.current.playbackRate =
-                0.9 + Math.random() * 0.3;
+        }, 250);
 
-            zombieGrowlRef.current.play().catch(() => { });
-        }, delay);
-
-        return () => clearTimeout(zombieTimerRef.current);
-    }, [zombies.length]);
+        return () => clearInterval(jitter);
+    }, []);
 
     return null;
 }
