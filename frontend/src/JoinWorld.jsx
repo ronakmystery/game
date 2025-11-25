@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import LobbyInfo from "./game/LobbyInfo";
 
 export default function JoinWorld({ onJoin }) {
-    const HOST = "10.226.221.105";
+    const HOST = "10.226.221.155";
 
     const [disconnected, setDisconnected] = useState(false);
     const [logs, setLogs] = useState("");

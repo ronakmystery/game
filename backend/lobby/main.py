@@ -34,7 +34,7 @@ class JoinRequest(BaseModel):
 import socket
 
 def get_host_ip():
-    return "10.226.221.105"
+    return "10.226.221.155"
 
 
 client = docker.from_env()
