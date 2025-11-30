@@ -10,6 +10,10 @@ from state import *
 from movement import apply_move
 from broadcast import broadcast_state
 
+import time
+round_start = time.time()
+phase = "play"
+winner_pid = None
 
 
 # ---------------------------------------------------

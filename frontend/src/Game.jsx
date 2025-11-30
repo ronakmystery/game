@@ -445,7 +445,9 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                 <Shadows />
                 <FollowCam target={myPos} />
 
-                <EnvironmentFloor receiveShadow scale={12} />
+                <EnvironmentFloor receiveShadow scale={30}
+                    position={[0, .5, 0]}
+                    rotation={[Math.PI / 2, 0, 0]} />
                 <LightFlicker />
 
                 {/* Zombies */}
@@ -455,7 +457,7 @@ export default function Game({ pid, ws, heartbeat, setSession }) {
                         url="/models/zombie.fbx"
                         scale={0.025}
                         position={z}
-                        rotation={[0, z.rotation || 0, 0]}
+                        rotation={[0, z.rotation + Math.PI || 0, 0]}
                     />
                 ))}
 

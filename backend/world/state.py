@@ -18,7 +18,4 @@ ROUND_TIME = 65
 PLAY_TIME = 60
 WAIT_TIME = 5
 
-import time
-round_start = time.time()
-phase = "play"
-winner_pid = None
+

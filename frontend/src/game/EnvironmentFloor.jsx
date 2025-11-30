@@ -2,8 +2,8 @@ import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import { useMemo } from "react";
 
-export default function EnvironmentFloor({ scale = 1, position = [0, 0, 0] }) {
-    const { scene } = useGLTF("/models/floor.glb");
+export default function EnvironmentFloor({ scale = 1, position = [0, 0, 0], rotation = [0, 0, 0] }) {
+    const { scene } = useGLTF("/models/grass.glb");
 
     // Extract biggest mesh once
     const bigMesh = useMemo(() => {
@@ -47,6 +47,7 @@ export default function EnvironmentFloor({ scale = 1, position = [0, 0, 0] }) {
 
     return (
         <primitive
+            rotation={rotation}
             object={bigMesh}
             position={position}
             scale={scale}

@@ -12,7 +12,8 @@ export default function DebugPage() {
                     scale={0.01}
                 />
 
-                <EnvironmentFloor scale={5} position={[0, -.2, 0]} />
+                <EnvironmentFloor scale={5} position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]} // rotate around Y only
+                />
             </TestCanvas>
         </>
     );
