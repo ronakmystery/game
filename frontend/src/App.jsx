@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { use, useState } from "react";
 
 import Login from "./components/Login.jsx";
 import Log from "./components/Log.jsx";
@@ -13,9 +13,17 @@ export default function App() {
   return (
     <div >
       <Log />
+      {
+        username && <div>Logged in as: {username}</div>
+      }
 
-      <Login username={username} setUsername={setUsername} />
-      <Worlds username={username} setWorld={setWorld} />
+      {
+        !username && <><Login username={username} setUsername={setUsername} />
+          <Worlds username={username} setWorld={setWorld} />
+        </>
+      }
+
+
       {/* <Game username={username} world={world} /> */}
       <GameDev username={username} />
     </div>
