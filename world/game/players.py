@@ -3,6 +3,7 @@ import random
 from .state import game_state, ARENA_MIN, ARENA_MAX
 from .utils import clamp, distance
 from .loot import spawn_loot
+from .utils import rect_hit
 
 import time
 from .database import save_stats
@@ -21,12 +22,20 @@ def record_death(username):
         survival_time=survival_time,
     )
 
-
 def move_player(username, xdir, ydir):
     p = game_state["players"][username]
     speed = 0.05
-    p["x"] = clamp(p["x"] + xdir * speed, ARENA_MIN, ARENA_MAX)
-    p["y"] = clamp(p["y"] + ydir * speed, ARENA_MIN, ARENA_MAX)
+    
+    new_x = clamp(p["x"] + xdir * speed, ARENA_MIN, ARENA_MAX)
+    new_y = clamp(p["y"] + ydir * speed, ARENA_MIN, ARENA_MAX)
+
+    # # Collision: block movement into obstacles
+    # for ob in game_state["obstacles"]:
+    #     if rect_hit(new_x, new_y, ob):
+    #         return   # blocked!
+
+    p["x"] = new_x
+    p["y"] = new_y
 
 
 def player_shoot(username, fx, fy):

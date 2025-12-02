@@ -40,6 +40,7 @@ class ConnectionManager:
                 "loot": [l.copy() for l in game_state["loot"]],
                 "round": game_state["round"],
                 "round_active": game_state["round_active"],
+                "obstacles": [ob.copy() for ob in game_state["obstacles"]],
             }
         })
 

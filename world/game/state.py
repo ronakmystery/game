@@ -12,4 +12,5 @@ game_state = {
     "loot": [],
     "round": 1,
     "round_active": False,
+    "obstacles": [],
 }

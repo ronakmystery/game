@@ -3,12 +3,14 @@ from game.state import game_state, ROUND_DELAY, TICK_RATE
 from game.zombies import spawn_zombies, update_zombies
 from game.loot import update_loot
 from game.network import manager
+from game.obstacles import random_obstacles
 
 async def game_loop():
     print("Game loop started.")
     next_round_timer = ROUND_DELAY
 
     game_state["zombies"] = spawn_zombies(game_state["round"])
+    game_state["obstacles"] = random_obstacles(10)
 
     while True:
         await asyncio.sleep(TICK_RATE)

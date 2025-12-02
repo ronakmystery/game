@@ -66,46 +66,90 @@ def update_zombie_attack(z, players):
                 p["alive"] = False
                 record_death(p["username"])
             return
-
-
-def update_zombie_movement(z, players):
-    """Chase nearest alive player, otherwise random move."""
+def update_zombie_movement(z, players, obstacles):
+    """Chase nearest alive player, otherwise random walk. Includes obstacle collision."""
     if not z["alive"]:
         return
 
-    # find nearest player
+    # ------------------------------
+    # 1. Find nearest alive player
+    # ------------------------------
     target = None
-    nearest = 9999
+    nearest = 999999
 
     for p in players.values():
         if not p["alive"]:
             continue
+
         d = distance(p["x"], p["y"], z["x"], z["y"])
         if d < nearest:
             nearest = d
             target = p
 
-    # chase
+    # ------------------------------
+    # 2. Determine movement vector
+    # ------------------------------
     if target:
+        # Chase
         dx = target["x"] - z["x"]
         dy = target["y"] - z["y"]
-        length = max(1e-5, (dx * dx + dy * dy) ** 0.5)
-
+        length = max(1e-5, (dx*dx + dy*dy) ** 0.5)
         move_dx = dx / length
         move_dy = dy / length
+
     else:
-        # random walk
+        # Random wandering
         z["change_timer"] -= TICK_RATE
         if z["change_timer"] <= 0:
             z["change_timer"] = random.uniform(1, 2)
             z["dx"] = random.uniform(-1, 1)
             z["dy"] = random.uniform(-1, 1)
+
         move_dx = z["dx"]
         move_dy = z["dy"]
 
-    speed = 0.07
-    z["x"] = clamp(z["x"] + move_dx * speed, ARENA_MIN, ARENA_MAX)
-    z["y"] = clamp(z["y"] + move_dy * speed, ARENA_MIN, ARENA_MAX)
+    speed = 0.1
+
+    # Proposed position
+    new_x = clamp(z["x"] + move_dx * speed, ARENA_MIN, ARENA_MAX)
+    new_y = clamp(z["y"] + move_dy * speed, ARENA_MIN, ARENA_MAX)
+
+    # # ------------------------------
+    # # 3. Obstacle collision check
+    # # ------------------------------
+    # def blocked(px, py):
+    #     for ob in obstacles:
+    #         if (
+    #             px > ob["x"] - ob["w"] and
+    #             px < ob["x"] + ob["w"] and
+    #             py > ob["y"] - ob["h"] and
+    #             py < ob["y"] + ob["h"]
+    #         ):
+    #             return True
+    #     return False
+
+    # # If hitting an obstacle → bounce
+    # if blocked(new_x, new_y):
+    #     # Push zombie away from the obstacle direction
+    #     z["dx"] = random.uniform(-1, 1)
+    #     z["dy"] = random.uniform(-1, 1)
+
+    #     # Normalize bounce
+    #     l = (z["dx"]**2 + z["dy"]**2) ** 0.5
+    #     if l > 0:
+    #         z["dx"] /= l
+    #         z["dy"] /= l
+
+    #     # Move slightly backwards
+    #     z["x"] -= move_dx * speed * 0.5
+    #     z["y"] -= move_dy * speed * 0.5
+    #     return
+
+    # ------------------------------
+    # 4. Move zombie normally
+    # ------------------------------
+    z["x"] = new_x
+    z["y"] = new_y
 
 
 def update_zombies():
@@ -118,4 +162,4 @@ def update_zombies():
 
         update_zombie_decay(z)
         update_zombie_attack(z, players)
-        update_zombie_movement(z, players)
+        update_zombie_movement(z, players, game_state["obstacles"])

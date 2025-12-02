@@ -332,7 +332,7 @@ export default function Game3D({ username }) {
                         <group key={`${i}-${z.hp}`} position={[z.x, 1, -z.y]}>
                             <mesh>
                                 <boxGeometry args={[1, 1, 1]} />
-                                <meshStandardMaterial color="green" />
+                                <meshStandardMaterial color="red" />
                             </mesh>
 
                             <Html center>
@@ -360,6 +360,17 @@ export default function Game3D({ username }) {
                 {gameState?.loot?.map((item, i) => (
                     <LootItem key={`loot-${i}`} item={item} />
                 ))}
+
+                {gameState?.obstacles?.map((ob, i) => (
+                    <mesh
+                        key={i}
+                        position={[ob.x, 0.75, -ob.y]}
+                    >
+                        <boxGeometry args={[ob.w, ob.h, ob.h]} />
+                        <meshStandardMaterial color="green" />
+                    </mesh>
+                ))}
+
 
 
 
