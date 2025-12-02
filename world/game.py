@@ -20,7 +20,11 @@ game_state = {
     "zombies": [],         # list of {x, y, alive}
     "round": 1,
     "round_active": False,
+    "loot": []
+    
 }
+
+
 
 
 # ============================================================
@@ -49,7 +53,8 @@ def spawn_zombies(count):
             "x": x,
             "y": y,
             "alive": True,
-            "hp": random.randint(20, 40),
+            "hp": random.randint(70, 100),
+            "max_hp": 100,
             "dx": random.uniform(-1, 1),
             "dy": random.uniform(-1, 1),
             "change_timer": random.uniform(1, 2),
@@ -76,7 +81,8 @@ class ConnectionManager:
             "y": 0,
             "alive": True,
             "score": 0,
-            "hp": 100
+            "hp": 100,
+            "ammo": 30
         }
 
 
@@ -146,8 +152,13 @@ async def process_message(websocket: WebSocket, raw: str):
     
 
     if data["type"] == "shoot":
+
         username = manager.active[websocket]
         p = game_state["players"][username]
+
+        if p["ammo"] <= 0:
+            return
+        p["ammo"] -= 1
 
         fx = data["fx"]
         fy = data["fy"]
@@ -174,12 +185,33 @@ async def process_message(websocket: WebSocket, raw: str):
             aim_cos = dot / dist
 
             if aim_cos > cos_limit:
-                dmg = random.randint(10, 20)
+                dmg = random.randint(5, 10)
 
                 z["hp"] -= dmg
                 if z["hp"] <= 0:
                     z["alive"] = False
                     p["score"] += 1
+
+                    # --------------------------
+                    # VISUAL LOOT DROP
+                    # --------------------------
+                    if random.random() < 0.5:
+                        drop = {
+                            "type": "health",
+                            "x": z["x"],
+                            "y": z["y"],
+                            "value": random.randint(5, 30)
+                        }
+                    else:
+                        drop = {
+                            "type": "ammo",
+                            "x": z["x"],
+                            "y": z["y"],
+                            "value": random.randint(10, 30)
+                        }
+                        
+                    game_state["loot"].append(drop)
+
 
 
     await manager.broadcast_state()
@@ -194,6 +226,85 @@ async def game_loop():
 
     while True:
         await asyncio.sleep(TICK_RATE)
+
+
+        # -----------------------------------
+        # PLAYER LOOT PICKUP (auto)
+        # -----------------------------------
+        PICKUP_RADIUS = 1.2
+        new_loot = []
+
+        for drop in game_state["loot"]:
+            picked = False
+
+            for name, p in game_state["players"].items():
+                if not p["alive"]:
+                    continue
+
+                dx = p["x"] - drop["x"]
+                dy = p["y"] - drop["y"]
+                dist = math.sqrt(dx * dx + dy * dy)
+
+                if dist < PICKUP_RADIUS:
+                    picked = True
+
+                    if drop["type"] == "health":
+                        p["hp"] = min(100, p["hp"] + drop["value"])
+
+                    elif drop["type"] == "ammo":
+                        if "ammo" not in p:
+                            p["ammo"] = 30
+                        p["ammo"] += drop["value"]
+
+                    break
+
+            if not picked:
+                new_loot.append(drop)
+
+        game_state["loot"] = new_loot
+
+
+        # -----------------------------------
+        # ZOMBIE AUTO-DECAY (lose 1–5 HP every ~1 sec)
+        # -----------------------------------
+        for z in game_state["zombies"]:
+            if not z["alive"]:
+                continue
+
+            # initialize cooldown timer if missing
+            if "auto_decay_cd" not in z:
+                z["auto_decay_cd"] = 1.0  # decay every 1 sec
+
+            # count down
+            z["auto_decay_cd"] -= TICK_RATE
+
+            # apply decay
+            if z["auto_decay_cd"] <= 0:
+                dmg = random.randint(1, 5)
+                z["hp"] -= dmg
+
+                if z["hp"] <= 0:
+                    z["alive"] = False
+                    if random.random() < 0.5:
+                        drop = {
+                            "type": "health",
+                            "x": z["x"],
+                            "y": z["y"],
+                            "value": random.randint(5, 30)
+                        }
+                    else:
+                        drop = {
+                            "type": "ammo",
+                            "x": z["x"],
+                            "y": z["y"],
+                            "value": random.randint(10, 30)
+                        }
+                    game_state["loot"].append(drop)
+                    
+
+                # reset timer
+                z["auto_decay_cd"] = 1.0
+
 
         # -----------------------------------
         # ZOMBIE DAMAGE TO PLAYERS (with cooldown)
