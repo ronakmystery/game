@@ -4,6 +4,24 @@ from .state import game_state, ARENA_MIN, ARENA_MAX
 from .utils import clamp, distance
 from .loot import spawn_loot
 
+import time
+from .database import save_stats
+
+def record_death(username):
+    p = game_state["players"][username]
+
+    kills = p.get("score", 0)
+    max_round = game_state["round"]
+    survival_time = time.time() - p.get("spawn_time", time.time())
+
+    save_stats(
+        username=username,
+        kills=kills,
+        max_round=max_round,
+        survival_time=survival_time,
+    )
+
+
 def move_player(username, xdir, ydir):
     p = game_state["players"][username]
     speed = 0.05
@@ -44,3 +62,5 @@ def player_shoot(username, fx, fy):
                 z["alive"] = False
                 p["score"] += 1
                 game_state["loot"].append(spawn_loot(z))
+
+

@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN pip install fastapi uvicorn websockets asyncio
+RUN pip install fastapi uvicorn websockets asyncio pymysql
 
 EXPOSE 8001
 

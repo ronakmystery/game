@@ -3,6 +3,7 @@ import random
 from .state import game_state, ARENA_MIN, ARENA_MAX, TICK_RATE
 from .utils import clamp, distance
 from .loot import spawn_loot
+from .players import record_death
 
 def spawn_zombies(count):
     """Spawn zombies around edges of arena."""
@@ -63,6 +64,7 @@ def update_zombie_attack(z, players):
             if p["hp"] <= 0:
                 p["hp"] = 0
                 p["alive"] = False
+                record_death(p["username"])
             return
 
 

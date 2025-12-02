@@ -1,5 +1,3 @@
-# game/main_game_loop.py
-
 import asyncio
 from game.state import game_state, ROUND_DELAY, TICK_RATE
 from game.zombies import spawn_zombies, update_zombies

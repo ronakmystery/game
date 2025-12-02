@@ -4,6 +4,8 @@ from fastapi import WebSocket
 from .state import game_state
 from .players import move_player, player_shoot
 
+import time
+
 class ConnectionManager:
     def __init__(self):
         self.active = {}  # websocket → username
@@ -19,7 +21,9 @@ class ConnectionManager:
             "alive": True,
             "score": 0,
             "hp": 100,
-            "ammo": 30
+            "ammo": 30,
+            "username": username,
+            "spawn_time": time.time()
         }
 
     def remove(self, ws):
