@@ -1,11 +1,15 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-
-from game import game_state, manager, process_join, process_message, game_loop
 import asyncio
+
+# Import core game modules
+from game.state import game_state
+from game.network import manager, process_join, process_message
+from game.main_game_loop import game_loop   
 
 app = FastAPI()
 
+# CORS for frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -22,14 +26,15 @@ def hello():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
-    # Wait for join
+
+    # Wait for join packet
     try:
         await process_join(websocket)
     except:
         await websocket.close()
         return
 
-    # Handle game messages
+    # Handle messages
     try:
         while True:
             raw = await websocket.receive_text()
@@ -37,13 +42,14 @@ async def websocket_endpoint(websocket: WebSocket):
     except WebSocketDisconnect:
         pass
 
+    # Cleanup on disconnect
     manager.remove(websocket)
-    await manager.broadcast_state()
+    await manager.broadcast()
+    
 
-
-# --------------------------------------
-# START SHRINKING LOOP AUTOMATICALLY
-# --------------------------------------
+# -------------------------------------------------
+#   START GAME LOOP ON SERVER STARTUP
+# -------------------------------------------------
 @app.on_event("startup")
 async def _startup():
     asyncio.create_task(game_loop())
