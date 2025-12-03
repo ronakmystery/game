@@ -3,13 +3,14 @@ import time
 import threading
 import pymysql
 import bcrypt
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 
 from worlds import WORLDS, create_world     # <-- required for join_world
 
 router = APIRouter()
 
 
+IP = "10.226.221.155"
 
 # ----------------------------------------------------------
 # DB CONNECTION
@@ -79,7 +80,11 @@ def register(username: str, password: str):
 # LOGIN (auto-register)
 # ----------------------------------------------------------
 @router.post("/login")
-def login(username: str, password: str):
+async def login(request: Request):
+    data = await request.json()    # <--- simple JSON body
+    username = data["username"]
+    password = data["password"]
+
     cur = conn.cursor()
     cur.execute("SELECT password_hash FROM users WHERE username=%s", (username,))
     row = cur.fetchone()
@@ -142,12 +147,11 @@ def join_world(username: str, world_name: str = None):
 
     port = WORLDS[target_world]["port"]
 
-    HOST_IP = "10.226.221.105"   # your Windows hotspot IP
 
     return {
         "world_name": target_world,
-        "http_url": f"http://{HOST_IP}:{port}/hello",
-        "ws_url":  f"ws://{HOST_IP}:{port}/ws"
+        "http_url": f"http://{IP}:{port}/hello",
+        "ws_url":  f"ws://{IP}:{port}/ws"
     }
 
 

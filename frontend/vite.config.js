@@ -16,7 +16,7 @@ export default defineConfig({
 
     // 👇 MOST IMPORTANT PART FOR LAN + DOCKER
     hmr: {
-      host: "10.226.221.105",   // your laptop's LAN IP
+      host: "10.226.221.155",   // your laptop's LAN IP
       port: 5175,
     },
   },

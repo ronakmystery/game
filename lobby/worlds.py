@@ -4,6 +4,8 @@ import threading
 import random
 import string
 
+
+IP="10.226.221.155"
 def random_text(length=6):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 
@@ -70,7 +72,7 @@ def create_world():
         name=world_name,
         ports={"8001/tcp": ("0.0.0.0", world_port)},
         volumes={
-            "/abs/path/to/world": {"bind": "/app", "mode": "rw"}
+            "/home/x/Documents/game/world": {"bind": "/app", "mode": "rw"}
         },
         command="uvicorn app:app --host 0.0.0.0 --port 8001 --reload",
         environment={
@@ -92,8 +94,8 @@ def create_world():
         "world_name": world_name,
         "container": world_name,
         "world_port": world_port,
-        "http_url": f"http://10.226.221.105:{world_port}/hello",
-        "ws_url":   f"ws://10.226.221.105:{world_port}/ws"
+        "http_url": f"http://{IP}:{world_port}/hello",
+        "ws_url":   f"ws://{IP}:{world_port}/ws"
     }
 
 

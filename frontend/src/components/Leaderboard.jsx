@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 
+const IP = "10.226.221.155"
 export default function Leaderboard() {
     const [rows, setRows] = useState([]);
 
     useEffect(() => {
-        fetch("http://10.226.221.105:8000/leaderboard")
+        fetch(`http://${IP}:8000/leaderboard`)
             .then(r => r.json())
             .then(data => {
                 const sorted = [...data.leaderboard].sort((a, b) => {

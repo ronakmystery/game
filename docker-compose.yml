@@ -1,4 +1,7 @@
 services:
+  # -------------------------------
+  # LOBBY BACKEND
+  # -------------------------------
   lobby:
     build: ./lobby
     container_name: lobby
@@ -15,14 +18,16 @@ services:
     depends_on:
       - db
 
-
+  # -------------------------------
+  # WORLD DEV BACKEND
+  # -------------------------------
   world_dev:
     build: ./world
     container_name: world_dev
     ports:
       - "8001:8001"
     volumes:
-      - ./world:/app       
+      - ./world:/app
     command: uvicorn app:app --host 0.0.0.0 --port 8001 --reload
     environment:
       DB_HOST: db
@@ -32,7 +37,9 @@ services:
     depends_on:
       - db
 
-
+  # -------------------------------
+  # FRONTEND (Vite)
+  # -------------------------------
   frontend:
     build: ./frontend
     container_name: frontend
@@ -42,10 +49,11 @@ services:
       - ./frontend:/app
 
   # -------------------------------
-  # DATABASE
+  # DATABASE (ARM64-COMPATIBLE)
   # -------------------------------
   db:
     image: mariadb:10.6
+    platform: linux/arm64   # <--- ensures ARM build
     container_name: game_db
     restart: always
     environment:
@@ -56,18 +64,21 @@ services:
     volumes:
       - db_data:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
+  # -------------------------------
+  # PHPMYADMIN (ARM64-FRIENDLY)
+    # -------------------------------
+  pma:
+    image: adminer:latest
+    platform: linux/arm64
     container_name: pma
     restart: always
     ports:
-      - "8081:80"
+      - "8081:8080"
     environment:
-      PMA_HOST: db
-      PMA_USER: root
-      PMA_PASSWORD: root123
+      ADMINER_DEFAULT_SERVER: db
     depends_on:
       - db
+
 
 volumes:
   db_data:

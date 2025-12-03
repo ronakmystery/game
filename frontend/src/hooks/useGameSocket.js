@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 
 export default function useGameSocket(username, world) {
     console.log("useGameSocket world:", world);
-    // const WS_URL = "ws://10.226.221.105:8001/ws";
+    // const WS_URL = "ws://10.226.221.155:8001/ws";
     const WS_URL = world.ws_url;
     const wsRef = useRef(null);
     const [gameState, setGameState] = useState(null);

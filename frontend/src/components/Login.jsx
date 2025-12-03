@@ -1,21 +1,26 @@
 import { useState, useEffect } from "react";
 
+
+const IP = "10.226.221.155"
 export default function Login({ username, setUsername, loggedIn, setLoggedIn }) {
-    const [password, setPassword] = useState("");
+    const [password, setPassword] = useState("x");
     const [output, setOutput] = useState("");
     const [heartbeatInterval, setHeartbeatInterval] = useState(null);
 
     async function doLogin() {
-        const res = await fetch(
-            `http://10.226.221.105:8000/login?username=${username}&password=${password}`,
-            { method: "POST" }
-        );
+        const res = await fetch(`http://${IP}:8000/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+
 
         const json = await res.json();
         setOutput(JSON.stringify(json, null, 2));
 
         // If login was ok or auto-register, start heartbeat
         if (json.status === "ok" || json.status === "registered") {
+            console.log("Login successful");
             setLoggedIn(true);
             startHeartbeat(username);
         }
@@ -28,7 +33,7 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
         const interval = setInterval(async () => {
             try {
                 await fetch(
-                    `http://10.226.221.105:8000/heartbeat?username=${user}`,
+                    `http://${IP}:8000/heartbeat?username=${user}`,
                     { method: "POST" }
                 );
             } catch (err) {

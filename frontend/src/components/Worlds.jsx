@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 
+const IP = "10.226.221.155"
 export default function Worlds({ username, setWorld }) {
     const [worlds, setWorlds] = useState({});
     const [joined, setJoined] = useState(null);
@@ -10,7 +11,7 @@ export default function Worlds({ username, setWorld }) {
     // Fetch available worlds
     async function loadWorlds() {
         try {
-            const res = await fetch("http://10.226.221.105:8000/worlds");
+            const res = await fetch(`http://${IP}:8000/worlds`);
             const json = await res.json();
             setWorlds(json || {});
         } catch {
@@ -30,7 +31,7 @@ export default function Worlds({ username, setWorld }) {
 
         try {
             const res = await fetch(
-                `http://10.226.221.105:8000/join_world?username=${username}&world_name=${wName}`,
+                `http://${IP}:8000/join_world?username=${username}&world_name=${wName}`,
                 { method: "POST" }
             );
             const json = await res.json();
@@ -50,7 +51,7 @@ export default function Worlds({ username, setWorld }) {
 
         try {
             const res = await fetch(
-                "http://10.226.221.105:8000/create_world",
+                `http://${IP}:8000/create_world`,
                 { method: "POST" }
             );
             const json = await res.json();
