@@ -1,31 +1,29 @@
-import { use, useState } from "react";
+import { useState } from "react";
 
 import Login from "./components/Login.jsx";
-import Log from "./components/Log.jsx";
-import Worlds from "./components/Worlds.jsx";
-import Game from "./components/Game.jsx";
-import GameDev from "./components/GameDev.jsx";
+import Lobby from "./Lobby.jsx";
 
+import "./App.css";
+import Leaderboard from "./components/Leaderboard.jsx";
 export default function App() {
-  const [username, setUsername] = useState("x");
-  const [world, setWorld] = useState(null);
+  // const [username, setUsername] = useState(`${Math.random().toString(36).substring(2, 8)}`);
+  const [username, setUsername] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
 
   return (
     <div >
-      <Log />
       {
-        username && <div>Logged in as: {username}</div>
-      }
+        !loggedIn &&
+        <>
+          <Login username={username} setUsername={setUsername} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+          <Leaderboard />
 
-      {
-        !username && <><Login username={username} setUsername={setUsername} />
-          <Worlds username={username} setWorld={setWorld} />
         </>
+
       }
 
 
-      {/* <Game username={username} world={world} /> */}
-      <GameDev username={username} />
+      {loggedIn && <Lobby username={username} />}
     </div>
   );
 }

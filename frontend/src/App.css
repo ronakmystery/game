@@ -1,0 +1,22 @@
+body {}
+
+#round {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    font-size: 40px;
+    color: red;
+}
+
+
+
+#fire-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 100;
+    font-size: 40px;
+    background: none;
+    border-radius: 10px;
+}

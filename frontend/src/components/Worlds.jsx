@@ -61,20 +61,14 @@ export default function Worlds({ username, setWorld }) {
     }
 
     return (
-        <div style={{ padding: 20 }}>
+        <div id="worlds">
 
 
             <h2>World Browser</h2>
 
-            <div style={{ marginBottom: 10 }}>
-                Logged in as: <b>{username || "??"}</b>
-            </div>
 
             <button onClick={createWorld}>Create New World</button>
 
-            {error && (
-                <div style={{ color: "red", marginTop: 10 }}>{error}</div>
-            )}
 
             <h3 style={{ marginTop: 20 }}>Available Worlds</h3>
 
@@ -96,21 +90,7 @@ export default function Worlds({ username, setWorld }) {
                 ))}
             </ul>
 
-            {joined && (
-                <div style={{ marginTop: 20 }}>
-                    <h3>Joined {joined.world_name || joined.world_id}</h3>
-                    <div>HTTP: {joined.http_url}</div>
-                    <div>WS: {joined.ws_url}</div>
-                </div>
-            )}
 
-            {created && (
-                <div style={{ marginTop: 20 }}>
-                    <h3>Created {created.world_name}</h3>
-                    <div>HTTP: {created.http_url}</div>
-                    <div>WS: {created.ws_url}</div>
-                </div>
-            )}
         </div>
     );
 }

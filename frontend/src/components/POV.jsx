@@ -1,6 +1,6 @@
 import { useFrame } from "@react-three/fiber";
 
-export default function FirstPersonCam({ player }) {
+export default function POV({ player }) {
     useFrame(({ camera }) => {
         if (!player?.alive) return;
 

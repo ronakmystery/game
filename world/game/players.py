@@ -25,15 +25,23 @@ def record_death(username):
 def move_player(username, xdir, ydir):
     p = game_state["players"][username]
     speed = 0.05
-    
+
+    # -------------------------------
+    # Store direction (for model rotation)
+    # -------------------------------
+    p["dx"] = xdir
+    p["dy"] = ydir
+
+    # Compute new position
     new_x = clamp(p["x"] + xdir * speed, ARENA_MIN, ARENA_MAX)
     new_y = clamp(p["y"] + ydir * speed, ARENA_MIN, ARENA_MAX)
 
-    # # Collision: block movement into obstacles
+    # Collision block (optional)
     # for ob in game_state["obstacles"]:
     #     if rect_hit(new_x, new_y, ob):
-    #         return   # blocked!
+    #         return
 
+    # Commit movement
     p["x"] = new_x
     p["y"] = new_y
 
@@ -64,7 +72,7 @@ def player_shoot(username, fx, fy):
             continue
 
         if (dot / dist) > 0.995:
-            dmg = random.randint(5, 10)
+            dmg = random.randint(5, 15)
             z["hp"] -= dmg
 
             if z["hp"] <= 0:

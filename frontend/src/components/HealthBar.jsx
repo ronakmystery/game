@@ -8,9 +8,10 @@ export default function HealthBar({ hp }) {
             top: 20,
             left: 20,
             width: 180,
-            height: 22,
+            height: 20,
             border: "2px solid #000",
-            borderRadius: 4,
+            borderRadius: 10,
+            overflow: "hidden",
             background: "#300",
             zIndex: 9999
         }}>
@@ -35,7 +36,6 @@ export default function HealthBar({ hp }) {
                 lineHeight: "22px",
                 textShadow: "1px 1px 3px #000"
             }}>
-                {pct <= 0 ? "DEAD" : `${pct} HP`}
             </div>
         </div>
     );

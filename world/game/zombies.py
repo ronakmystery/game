@@ -40,7 +40,7 @@ def update_zombie_decay(z):
     """Apply 1–5 HP decay every second."""
     z["auto_decay_cd"] -= TICK_RATE
     if z["auto_decay_cd"] <= 0:
-        z["hp"] -= random.randint(1, 5)
+        z["hp"] -= random.randint(1,3)
         z["auto_decay_cd"] = 1.0
 
         if z["hp"] <= 0:
@@ -102,8 +102,8 @@ def update_zombie_movement(z, players, obstacles):
         z["change_timer"] -= TICK_RATE
         if z["change_timer"] <= 0:
             z["change_timer"] = random.uniform(1, 2)
-            z["dx"] = random.uniform(-1, 1)
-            z["dy"] = random.uniform(-1, 1)
+            z["dx"] = random.uniform(-2, 2)
+            z["dy"] = random.uniform(-2, 2)
 
         move_dx = z["dx"]
         move_dy = z["dy"]

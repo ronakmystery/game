@@ -69,7 +69,16 @@ def create_world():
         detach=True,
         name=world_name,
         ports={"8001/tcp": ("0.0.0.0", world_port)},
-        restart_policy={"Name": "no"}
+        volumes={
+            "/abs/path/to/world": {"bind": "/app", "mode": "rw"}
+        },
+        command="uvicorn app:app --host 0.0.0.0 --port 8001 --reload",
+        environment={
+            "DB_HOST": "db",
+            "DB_USER": "game",
+            "DB_PASS": "game123",
+            "DB_NAME": "game_db"
+        }
     )
 
     WORLDS[world_name] = {

@@ -20,7 +20,7 @@ def save_stats(username, kills, max_round, survival_time):
     cur = conn.cursor()
 
     cur.execute("""
-        INSERT INTO player_stats (username, kills, max_round, survival_time)
+        INSERT INTO leaderboard (username, kills, max_round, survival_time)
         VALUES (%s, %s, %s, %s)
     """, (username, kills, max_round, survival_time))
 

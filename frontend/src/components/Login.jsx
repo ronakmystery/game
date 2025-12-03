@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 
-export default function Login({ username, setUsername }) {
+export default function Login({ username, setUsername, loggedIn, setLoggedIn }) {
     const [password, setPassword] = useState("");
     const [output, setOutput] = useState("");
-    const [loggedIn, setLoggedIn] = useState(false);
     const [heartbeatInterval, setHeartbeatInterval] = useState(null);
 
     async function doLogin() {

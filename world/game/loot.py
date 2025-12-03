@@ -28,7 +28,7 @@ def spawn_loot(z):
 
 def update_loot():
     now = time.time()
-    LIFETIME = 5.0   # seconds
+    LIFETIME = 10.0   # seconds
 
     new_loot = []
 

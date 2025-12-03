@@ -9,6 +9,8 @@ from worlds import WORLDS, create_world     # <-- required for join_world
 
 router = APIRouter()
 
+
+
 # ----------------------------------------------------------
 # DB CONNECTION
 # ----------------------------------------------------------
@@ -156,3 +158,19 @@ def join_world(username: str, world_name: str = None):
 @router.get("/current_users")
 def current_users():
     return {"current_users": list(CURRENT_USERS.keys())}
+
+# ----------------------------------------------------------
+# LEADERBOARD
+# ----------------------------------------------------------
+@router.get("/leaderboard")
+def leaderboard(limit: int = 10):
+    cur = conn.cursor(pymysql.cursors.DictCursor)
+    cur.execute("""
+        SELECT username, kills, max_round, survival_time, timestamp
+        FROM leaderboard
+        ORDER BY max_round DESC, kills DESC, survival_time DESC
+        LIMIT %s
+    """, (limit,))
+
+    rows = cur.fetchall()
+    return {"leaderboard": rows}

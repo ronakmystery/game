@@ -9,8 +9,8 @@ def distance(ax, ay, bx, by):
 
 def rect_hit(px, py, ob):
     return (
-        px > ob["x"] - ob["w"] and
-        px < ob["x"] + ob["w"] and
-        py > ob["y"] - ob["h"] and
-        py < ob["y"] + ob["h"]
+        px > ob["x"] - ob["w"]/2 and
+        px < ob["x"] + ob["w"]/2 and
+        py > ob["y"] - ob["h"]/2 and
+        py < ob["y"] + ob["h"]/2
     )
