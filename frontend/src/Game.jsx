@@ -153,7 +153,9 @@ export default function Game({ username, setWorld, world }) {
                 </div>
             )}
 
-            <button onClick={() => setWorld(null)}>Run</button>
+            <button onClick={() => {
+                window.location.reload();
+            }}>Leave</button>
 
 
         </div>

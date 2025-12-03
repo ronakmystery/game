@@ -39,11 +39,11 @@ def ensure_dev_world():
 
         # --- IMPORTANT: BIND TO 0.0.0.0 ---
         client.containers.run(
-            "world",
+            "game-world_dev:latest",
             detach=True,
             name=DEV_WORLD_NAME,
             ports={"8001/tcp": ("0.0.0.0", DEV_WORLD_PORT)},
-            restart_policy={"Name": "no"}
+            network="game_default",
         )
 
     WORLDS[DEV_WORLD_NAME] = {
@@ -67,7 +67,7 @@ def create_world():
 
     # --- IMPORTANT: BIND TO 0.0.0.0 ---
     client.containers.run(
-        "world",
+        "game-world_dev:latest",
         detach=True,
         name=world_name,
         ports={"8001/tcp": ("0.0.0.0", world_port)},
@@ -80,7 +80,8 @@ def create_world():
             "DB_USER": "game",
             "DB_PASS": "game123",
             "DB_NAME": "game_db"
-        }
+        },
+        network="game_default"
     )
 
     WORLDS[world_name] = {

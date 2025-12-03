@@ -14,6 +14,8 @@ def record_death(username):
     kills = p.get("score", 0)
     max_round = game_state["round"]
     survival_time = time.time() - p.get("spawn_time", time.time())
+    print(f"[GAME] Player {p['username']} has died.")
+
 
     save_stats(
         username=username,
