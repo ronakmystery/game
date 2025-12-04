@@ -25,7 +25,11 @@ import Joystick from "./components/Joystick";
 import Players from "./components/Players";
 import Scores from "./components/Scores";
 
+import Minimap from "./components/Minimap";
+
 const IP = "10.226.221.155";
+
+
 
 export default function Game({ username, setWorld, world }) {
     const { gameState, ws, me } = useGameSocket(username, world);
@@ -33,9 +37,12 @@ export default function Game({ username, setWorld, world }) {
     const sendMove = useMovement(ws, me);
     useCameraLook(me);
 
+
+
     const [prevActive, setPrevActive] = useState(null);
     useEffect(() => {
         if (!gameState) return;
+        // console.log("GameState updated:", gameState);
 
         const active = gameState.round_active;
 
@@ -91,7 +98,7 @@ export default function Game({ username, setWorld, world }) {
         if (me.alive === false) {
             setTimeout(() => {
                 leaveWorld();
-            }, 5000);
+            }, 10000);
         }
 
     }, [me]);
@@ -164,6 +171,12 @@ export default function Game({ username, setWorld, world }) {
             )}
 
 
+            <Minimap
+                me={me}
+                players={gameState?.players}
+                zombies={gameState?.zombies}
+                obstacles={gameState?.obstacles}
+            />
 
             <Canvas
                 onClick={shoot}
