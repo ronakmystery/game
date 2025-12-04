@@ -21,7 +21,7 @@ export default function Minimap({ me, players, zombies, obstacles }) {
             width: size,
             height: size,
             borderRadius: "50%",
-            border: "2px solid white",
+            border: "1px solid white",
             background: "rgba(0,0,0,0.4)",
             overflow: "hidden",
             zIndex: 999,

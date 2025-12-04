@@ -4,11 +4,11 @@ export default function MiniLeaderboard({ players }) {
 
     const sorted = [...players]
         .sort((a, b) => b.score - a.score)
-        .slice(0, 3); // top 3
+        .slice(0, 7)
 
     return (
         <div style={styles.box}>
-            <div style={styles.title}>LEADERBOARD</div>
+            <div style={styles.title}>PLAYERS</div>
 
             {sorted.map((p, i) => (
                 <div key={p.username} style={styles.row}>
@@ -34,13 +34,13 @@ const styles = {
         position: "absolute",
         bottom: "10px",
         left: "10px",
-        width: "180px",
+        width: "100px",
         background: "rgba(0,0,0,0.45)",
         padding: "10px",
         borderRadius: "8px",
         color: "white",
         fontFamily: "sans-serif",
-        fontSize: "13px",
+        fontSize: "6px",
         backdropFilter: "blur(4px)",
         zIndex: 9999,
     },
@@ -49,7 +49,7 @@ const styles = {
         fontWeight: "bold",
         marginBottom: "6px",
         letterSpacing: "1px",
-        fontSize: "12px",
+        fontSize: "6px",
     },
     row: {
         display: "flex",

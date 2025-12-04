@@ -36,12 +36,15 @@ EOF
 }
 
 # ---------------------------------------------------
-# 3. FIREWALL (fixed droplet reference)
+# 3. FIREWALL (fixed droplet reference + full rules)
 # ---------------------------------------------------
 resource "digitalocean_firewall" "zombie_fw" {
   name        = "zombie-fw"
-  droplet_ids = [digitalocean_droplet.server.id]   # <-- FIXED
+  droplet_ids = [digitalocean_droplet.server.id]
 
+  # ---------------------------
+  # INBOUND RULES
+  # ---------------------------
   inbound_rule {
     protocol         = "tcp"
     port_range       = "22"
@@ -66,9 +69,27 @@ resource "digitalocean_firewall" "zombie_fw" {
     source_addresses = ["0.0.0.0/0"]
   }
 
+  # ---------------------------
+  # OUTBOUND RULES  (IMPORTANT)
+  # ---------------------------
+
+  # TCP (already correct)
   outbound_rule {
     protocol              = "tcp"
     port_range            = "1-65535"
+    destination_addresses = ["0.0.0.0/0"]
+  }
+
+  # UDP (required for DNS!)
+  outbound_rule {
+    protocol              = "udp"
+    port_range            = "1-65535"
+    destination_addresses = ["0.0.0.0/0"]
+  }
+
+  # ICMP (makes ping work, optional but recommended)
+  outbound_rule {
+    protocol              = "icmp"
     destination_addresses = ["0.0.0.0/0"]
   }
 }

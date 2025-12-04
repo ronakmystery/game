@@ -91,17 +91,17 @@ export default function Game({ username, setWorld, world }) {
         setWorld(null);
     }
 
-    useEffect(() => {
-        if (!me) return;
+    // useEffect(() => {
+    //     if (!me) return;
 
-        // player just died
-        if (me.alive === false) {
-            setTimeout(() => {
-                leaveWorld();
-            }, 10000);
-        }
+    //     // player just died
+    //     if (me.alive === false) {
+    //         setTimeout(() => {
+    //             leaveWorld();
+    //         }, 10000);
+    //     }
 
-    }, [me]);
+    // }, [me]);
 
     const [nextRoundTimer, setNextRoundTimer] = useState(null);
 
