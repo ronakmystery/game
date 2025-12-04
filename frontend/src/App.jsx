@@ -7,7 +7,7 @@ import "./App.css";
 import Leaderboard from "./components/Leaderboard.jsx";
 export default function App() {
   // const [username, setUsername] = useState(`${Math.random().toString(36).substring(2, 8)}`);
-  const [username, setUsername] = useState("x");
+  const [username, setUsername] = useState("");
   const [loggedIn, setLoggedIn] = useState(false);
 
   return (

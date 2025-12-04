@@ -56,8 +56,14 @@ export default function Worlds({ username, setWorld }) {
                 `http://${IP}:8000/create_world`,
                 { method: "POST" }
             );
+
+
             const json = await res.json();
-            setCreated(json);
+
+            setTimeout(() => {
+                setCreated(json);
+
+            }, 1000);
         } catch {
             setError("Failed to create world");
         }
@@ -75,7 +81,7 @@ export default function Worlds({ username, setWorld }) {
                 onClick={createWorld}
                 disabled={created === "pending"}
             >
-                {created === "pending" ? "CREATING..." : "+ CREATE NEW WORLD"}
+                {created === "pending" ? "CREATING..." : "CREATE NEW WORLD"}
             </button>
 
             <h3 className="wb-sub">Available Worlds</h3>
@@ -90,9 +96,14 @@ export default function Worlds({ username, setWorld }) {
                             <div>Port: {w.port}</div>
                         </div>
 
-                        <button className="wb-join" onClick={() => join(wName)}>
-                            JOIN
+                        <button
+                            className="wb-join"
+                            disabled={w.players.length >= 7}
+                            onClick={() => join(wName)}
+                        >
+                            {w.players.length >= 7 ? "FULL" : "JOIN"}
                         </button>
+
                     </li>
                 ))}
             </ul>
