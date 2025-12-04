@@ -189,7 +189,7 @@ def current_users():
 # LEADERBOARD
 # ----------------------------------------------------------
 @router.get("/leaderboard")
-def leaderboard(limit: int = 10):
+def leaderboard(limit: int = 7):
     cur = conn.cursor(pymysql.cursors.DictCursor)
     cur.execute("""
         SELECT username, kills, max_round, survival_time, timestamp
