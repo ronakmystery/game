@@ -47,7 +47,6 @@ def move_player(username, xdir, ydir):
     p["x"] = new_x
     p["y"] = new_y
 
-
 def player_shoot(username, fx, fy):
     p = game_state["players"][username]
 
@@ -68,12 +67,8 @@ def player_shoot(username, fx, fy):
         if dist > max_dist:
             continue
 
-        # angle filter
-        dot = dx * fx + dy * fy
-        if dot <= 0:
-            continue
-
-        if (dot / dist) > 0.995:
+        # 🔥 AUTO-HIT if zombie extremely close
+        if dist < 1.3:
             dmg = random.randint(5, 15)
             z["hp"] -= dmg
 
@@ -81,5 +76,19 @@ def player_shoot(username, fx, fy):
                 z["alive"] = False
                 p["score"] += 1
                 game_state["loot"].append(spawn_loot(z))
+            continue
 
+        # angle filter (only for medium/far hits)
+        dot = dx * fx + dy * fy
+        if dot <= 0:
+            continue
 
+        # tighter cone makes aiming harder
+        if (dot / dist) > 0.999:
+            dmg = random.randint(5, 15)
+            z["hp"] -= dmg
+
+            if z["hp"] <= 0:
+                z["alive"] = False
+                p["score"] += 1
+                game_state["loot"].append(spawn_loot(z))

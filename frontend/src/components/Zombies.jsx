@@ -12,7 +12,7 @@ function DamagePop({ amount }) {
     // SIZE + COLOR LOGIC
     const isSmall = amount < 5;
     const color = isSmall ? "yellow" : "red";
-    const size = isSmall ? 10 : 20;
+    const size = isSmall ? 5 : 10;
 
     useEffect(() => {
         const id = setInterval(() => {

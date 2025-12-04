@@ -1,0 +1,66 @@
+services:
+  lobby:
+    build: ./lobby
+    container_name: lobby
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./lobby:/app
+    environment:
+      DB_HOST: db
+      DB_USER: game
+      DB_PASS: game123
+      DB_NAME: game_db
+    depends_on:
+      - db
+
+  world_dev:
+    build: ./world
+    container_name: world_dev
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./world:/app
+    command: uvicorn app:app --host 0.0.0.0 --port 8001 --reload
+    environment:
+      DB_HOST: db
+      DB_USER: game
+      DB_PASS: game123
+      DB_NAME: game_db
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5175:5175"
+    volumes:
+      - ./frontend:/app
+
+  db:
+    image: mariadb:10.6
+    container_name: game_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: game_db
+      MYSQL_USER: game
+      MYSQL_PASSWORD: game123
+    volumes:
+      - db_data:/var/lib/mysql
+
+  pma:
+    image: adminer:latest
+    container_name: pma
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    depends_on:
+      - db
+
+volumes:
+  db_data:
