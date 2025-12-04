@@ -36,7 +36,7 @@ export default function Leaderboard() {
                     paddingBottom: "6px",
                     borderBottom: "1px solid rgba(255,255,255,0.2)",
                     marginBottom: "6px",
-                    fontSize: "12px",
+                    fontSize: "10px",
                     opacity: 0.7,
                 }}
             >
@@ -56,7 +56,7 @@ export default function Leaderboard() {
                         gridTemplateColumns: "30px 1fr 40px 40px 50px",
                         padding: "4px 0",
                         borderBottom: "1px solid rgba(255,255,255,0.1)",
-                        fontSize: "13px",
+                        fontSize: "10px",
                     }}
                 >
                     <div>{i + 1}</div>

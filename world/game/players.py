@@ -60,7 +60,7 @@ def player_shoot(username, fx, fy):
         base = random.randint(5, 15)
 
         if p["score"] > 10:
-            return int(base * 3.0)     
+            return int(base * 4.0)     
         else:
             return base
 

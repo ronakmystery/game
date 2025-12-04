@@ -15,7 +15,7 @@ export default function Minimap({ me, players, zombies, obstacles }) {
     return (
         <div style={{
             position: "absolute",
-            top: 30,
+            bottom: 10,
             left: 10,
             opacity: 0.7,
             width: size,

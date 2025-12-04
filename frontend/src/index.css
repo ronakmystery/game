@@ -37,7 +37,9 @@ body {
 /* ================================================================ */
 /* LOGIN PANEL (mobile-first)                                       */
 /* ================================================================ */
-#login {}
+#login {
+    margin-top: 10px;
+}
 
 /* CRT Scanlines Overlay */
 #login::after,
@@ -115,8 +117,8 @@ body {
 
 /* PREVIEW OUTPUT -------------------------------------------------- */
 #login pre {
-    margin: 20px;
-    padding: 12px;
+    margin: 10px;
+    padding: 10px 20px;
 
     background: #010;
     border: 1px solid #0f0;
@@ -124,7 +126,7 @@ body {
     box-shadow: inset 0 0 10px #0f0;
 
     font-size: 10px;
-    max-height: 150px;
+    max-height: 200px;
     overflow-y: auto;
     white-space: pre-wrap;
 }

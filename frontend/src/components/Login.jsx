@@ -94,7 +94,20 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
 
             {loggedIn && <p style={{ color: "lightgreen" }}>Logged in as {username}</p>}
 
-            <pre>{output}</pre>
+            <pre>{output ? output : `
+Designed and Developed by 
+Ronak Mistry + ChatGPT
+            
+Frontend: [React]
+
+Backend: [Python, MariaDB, Adminer]
+
+Dev:[Vite, Docker]
+
+Server:[Raspberry Pi 5]
+
+            
+            `}</pre>
         </div>
     );
 }

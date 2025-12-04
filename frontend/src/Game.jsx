@@ -17,7 +17,6 @@ import Obstacles from "./components/Obstacles";
 
 import HealthBar from "./components/HealthBar";
 import Ammo from "./components/Ammo";
-import Round from "./components/Round";
 import Joystick from "./components/Joystick";
 
 
@@ -112,7 +111,6 @@ export default function Game({ username, setWorld, world }) {
             style={{ height: "50vh", position: "relative" }}>
             {alive && <HealthBar hp={me.hp} />}
             {alive && <Ammo ammo={me.ammo} />}
-            {gameState && <Round round={gameState.round} />}
             {alive && (
                 <img
                     src={me.score >= 10 ? "/gun2.png" : "/gun.png"}
@@ -248,7 +246,7 @@ export default function Game({ username, setWorld, world }) {
                     </div>
                 )
             }
-            <Scores players={Object.values(gameState?.players || {})} />
+            <Scores gameState={gameState} />
 
 
             <button

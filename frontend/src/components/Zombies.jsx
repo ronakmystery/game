@@ -25,7 +25,7 @@ function DamagePop({ amount }) {
             }
 
             if (t >= 1) clearInterval(id);
-        }, 16);
+        }, 20);
 
         return () => clearInterval(id);
     }, []);
