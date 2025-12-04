@@ -23,6 +23,7 @@ import Joystick from "./components/Joystick";
 
 
 import Players from "./components/Players";
+import Scores from "./components/Scores";
 
 const IP = "10.226.221.155";
 
@@ -38,10 +39,21 @@ export default function Game({ username, setWorld, world }) {
 
         const active = gameState.round_active;
 
-        // round ended (went from true -> false)
         if (prevActive === true && active === false) {
-            alert("Round complete! Next round in 7 seconds!");
+            let timeLeft = 7;
+            setNextRoundTimer(timeLeft);
+
+            const interval = setInterval(() => {
+                timeLeft -= 1;
+                setNextRoundTimer(timeLeft);
+
+                if (timeLeft <= 0) {
+                    clearInterval(interval);
+                    setNextRoundTimer(null);
+                }
+            }, 1000);
         }
+
 
         setPrevActive(active);
     }, [gameState]);
@@ -71,6 +83,21 @@ export default function Game({ username, setWorld, world }) {
 
         setWorld(null);
     }
+
+    useEffect(() => {
+        if (!me) return;
+
+        // player just died
+        if (me.alive === false) {
+            setTimeout(() => {
+                leaveWorld();
+            }, 5000);
+        }
+
+    }, [me]);
+
+    const [nextRoundTimer, setNextRoundTimer] = useState(null);
+
 
     return (
         <div
@@ -116,6 +143,27 @@ export default function Game({ username, setWorld, world }) {
                 />
             )}
 
+            {nextRoundTimer !== null && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        padding: "8px 16px",
+                        background: "rgba(0,0,0,0.6)",
+                        color: "white",
+                        fontSize: "10px",
+                        fontWeight: "bold",
+                        borderRadius: "8px",
+                        zIndex: 900
+                    }}
+                >
+                    Next round in {nextRoundTimer}...
+                </div>
+            )}
+
+
 
             <Canvas
                 onClick={shoot}
@@ -126,6 +174,7 @@ export default function Game({ username, setWorld, world }) {
                     scene.fog = new THREE.Fog("#050505", 5, 40);     // fog near, far
                 }}
             >
+
                 <ambientLight intensity={1} />
                 <directionalLight position={[5, 10, 5]} intensity={1} />
 
@@ -163,6 +212,30 @@ export default function Game({ username, setWorld, world }) {
 
                 </div>
             )}
+
+            {
+                !alive && (
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            color: "white",
+                            fontSize: "100px",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            textShadow: "2px 2px 5px #000",
+                            zIndex: 500,
+                            opacity: 0.5
+                        }}
+                    >
+                        💀 <br />
+                    </div>
+                )
+            }
+            <Scores players={Object.values(gameState?.players || {})} />
+
 
             <button
                 id="leave-btn"

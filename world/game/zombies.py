@@ -9,7 +9,7 @@ def spawn_zombies(count):
     """Spawn zombies around edges of arena."""
     zombies = []
 
-    for _ in range(count):
+    for _ in range(count*10):
         side = random.choice(["top", "bottom", "left", "right"])
 
         if side == "top":

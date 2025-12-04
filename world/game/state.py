@@ -10,7 +10,7 @@ game_state = {
     "players": {},
     "zombies": [],
     "loot": [],
-    "round": 10,
+    "round": 1,
     "round_active": False,
     "obstacles": [],
 }

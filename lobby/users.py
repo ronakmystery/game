@@ -160,17 +160,22 @@ def leave_world(username: str):
     if username not in CURRENT_USERS:
         raise HTTPException(400, "User not logged in")
 
-    world = PLAYER_WORLD[username]
+    # Safe lookup
+    world = PLAYER_WORLD.get(username)
 
-    # Remove from world
-    if world in WORLDS:
-        WORLDS[world]["players"].discard(username)
-        WORLDS[world]["last_active"] = time.time()
+    if world:
+        # Remove from world safely
+        if world in WORLDS:
+            WORLDS[world]["players"].discard(username)
+            WORLDS[world]["last_active"] = time.time()
 
-    # Remove mapping
-    del PLAYER_WORLD[username]
+        # Remove mapping
+        PLAYER_WORLD.pop(username, None)
 
-    return {"status": "left", "world": world}
+        return {"status": "left", "world": world}
+
+    # If world was already removed or user was cleaned up → still return ok
+    return {"status": "already_left", "world": None}
 
 
 # ----------------------------------------------------------
