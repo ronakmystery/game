@@ -53,6 +53,17 @@ def player_shoot(username, fx, fy):
     if p["ammo"] <= 0:
         return
 
+    # -----------------------
+    # Damage function
+    # -----------------------
+    def calc_damage(p):
+        base = random.randint(5, 15)
+
+        if p["score"] > 10:
+            return int(base * 3.0)     
+        else:
+            return base
+
     p["ammo"] -= 1
     max_dist = 20
 
@@ -69,7 +80,7 @@ def player_shoot(username, fx, fy):
 
         # 🔥 AUTO-HIT if zombie extremely close
         if dist < 1.3:
-            dmg = random.randint(5, 15)
+            dmg = calc_damage(p)
             z["hp"] -= dmg
 
             if z["hp"] <= 0:
@@ -78,14 +89,13 @@ def player_shoot(username, fx, fy):
                 game_state["loot"].append(spawn_loot(z))
             continue
 
-        # angle filter (only for medium/far hits)
+        # Angle filter
         dot = dx * fx + dy * fy
         if dot <= 0:
             continue
 
-        # tighter cone makes aiming harder
         if (dot / dist) > 0.999:
-            dmg = random.randint(5, 15)
+            dmg = calc_damage(p)
             z["hp"] -= dmg
 
             if z["hp"] <= 0:

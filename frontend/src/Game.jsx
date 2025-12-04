@@ -113,14 +113,15 @@ export default function Game({ username, setWorld, world }) {
             {alive && <HealthBar hp={me.hp} />}
             {alive && <Ammo ammo={me.ammo} />}
             {gameState && <Round round={gameState.round} />}
-            {
-                alive && <img
-                    src="/gun.png"
+            {alive && (
+                <img
+                    src={me.score >= 10 ? "/gun2.png" : "/gun.png"}
                     alt="gun"
                     style={{
                         position: "absolute",
                         bottom: "0px",
-                        right: "0px",
+                        right: me.score >= 10 ? "-40px" : "0px",
+
                         height: "45%",
                         pointerEvents: "none",
                         userSelect: "none",
@@ -130,7 +131,7 @@ export default function Game({ username, setWorld, world }) {
                         transition: "transform 0.12s ease-out"
                     }}
                 />
-            }
+            )}
 
 
             {alive && recoil && (
@@ -207,8 +208,8 @@ export default function Game({ username, setWorld, world }) {
                     />
                 )}
                 <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                    <circleGeometry args={[25, 30]} />  {/* radius 25, 64 segments */}
-                    <meshStandardMaterial color="rgb(50, 100, 50)" />
+                    <circleGeometry args={[20, 20]} />  {/* radius 25, 64 segments */}
+                    <meshStandardMaterial color="rgba(7, 44, 7, 1)" />
                 </mesh>
 
 

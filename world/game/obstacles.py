@@ -5,8 +5,8 @@ from .state import ARENA_MIN, ARENA_MAX
 def random_obstacles(count=6):
     obs = []
 
-    INNER_RADIUS = 3      # no obstacles near 0,0
-    OUTER_RADIUS = 17     # keeps obstacles mid-field
+    INNER_RADIUS = 5      # no obstacles near 0,0
+    OUTER_RADIUS = 20    # keeps obstacles mid-field
 
     for _ in range(count):
         w = random.uniform(1, 2)

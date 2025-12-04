@@ -10,7 +10,7 @@ async def game_loop():
     next_round_timer = ROUND_DELAY
 
     game_state["zombies"] = spawn_zombies(game_state["round"])
-    game_state["obstacles"] = random_obstacles(30)
+    game_state["obstacles"] = random_obstacles(50)
 
     while True:
         await asyncio.sleep(TICK_RATE)
