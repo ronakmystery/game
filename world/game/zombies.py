@@ -24,7 +24,7 @@ def spawn_zombies(count):
         zombies.append({
             "x": x, "y": y,
             "alive": True,
-            "hp": random.randint(70, 100),
+            "hp": 100,
             "max_hp": 100,
             "dx": random.uniform(-1, 1),
             "dy": random.uniform(-1, 1),

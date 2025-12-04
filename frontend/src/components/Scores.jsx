@@ -32,8 +32,8 @@ export default function MiniLeaderboard({ players }) {
 const styles = {
     box: {
         position: "absolute",
-        bottom: "20px",
-        left: "20px",
+        bottom: "10px",
+        left: "10px",
         width: "180px",
         background: "rgba(0,0,0,0.45)",
         padding: "10px",

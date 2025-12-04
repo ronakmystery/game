@@ -2,6 +2,51 @@ import { useState, useEffect } from "react";
 
 const IP = "10.226.221.155";
 
+
+function AnimatedTerminal({ text }) {
+    const [display, setDisplay] = useState("");
+
+    useEffect(() => {
+        if (!text) {
+            setDisplay("");
+            return;
+        }
+
+        setDisplay("");           // reset
+        let i = 0;
+        const lines = text.split("\n");
+        const speed = 40;         // typing speed
+
+        function typeLine() {
+            if (i < lines.length) {
+                setDisplay((d) => d + lines[i] + "\n");
+                i++;
+                setTimeout(typeLine, speed);
+            }
+        }
+
+        typeLine();
+    }, [text]);
+
+    return (
+        <pre
+            style={{
+                background: "#000",
+                color: "#0f0",
+                padding: "10px",
+                border: "1px solid #0f0",
+                height: "180px",
+                overflowY: "auto",
+                fontFamily: "monospace",
+                fontSize: "14px",
+                whiteSpace: "pre-wrap"
+            }}
+        >
+            {display}
+        </pre>
+    );
+}
+
 export default function Login({ username, setUsername, loggedIn, setLoggedIn }) {
     const [password, setPassword] = useState("x");
     const [output, setOutput] = useState("");

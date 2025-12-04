@@ -15,8 +15,8 @@ export default function Minimap({ me, players, zombies, obstacles }) {
     return (
         <div style={{
             position: "absolute",
-            top: 40,
-            left: 20,
+            top: 30,
+            left: 10,
             opacity: 0.7,
             width: size,
             height: size,
@@ -66,7 +66,7 @@ export default function Minimap({ me, players, zombies, obstacles }) {
                 );
             })} */}
             {/* Zombies */}
-            {zombies?.map((z, i) => {
+            {zombies?.filter(z => z.alive).map((z, i) => {
                 const { x, y } = mapXY(z.x, z.y);
                 return (
                     <div key={i} style={{

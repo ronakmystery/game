@@ -5,14 +5,14 @@ export default function HealthBar({ hp }) {
     return (
         <div style={{
             position: "absolute",
-            top: 20,
-            left: 20,
+            top: 10,
+            left: 10,
             width: 180,
             height: 10,
             border: "2px solid #000",
             borderRadius: 10,
             overflow: "hidden",
-            background: "#300",
+            background: "red",
             zIndex: 9999
         }}>
             <div
