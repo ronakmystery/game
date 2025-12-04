@@ -2,4 +2,21 @@ tofu init
 tofu plan
 tofu apply
 
+
+
+
+sudo fallocate -l 2G /swapfile
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+
+
+
+curl -fsSL https://get.docker.com | sh
+
+
+sudo systemctl enable docker
+sudo systemctl start docker
+
 docker compose -f docker-compose-droplet.yml up -d
+

@@ -27,7 +27,7 @@ export default function Minimap({ me, players, zombies, obstacles }) {
             zIndex: 999,
         }}>
             {/* All players including me */}
-            {players && Object.values(players).map((p, i) => {
+            {players && Object.values(players).filter(p => p.alive).map((p, i) => {
                 const { x, y } = mapXY(p.x, p.y);
 
                 const isMe = p.username === me?.username;
