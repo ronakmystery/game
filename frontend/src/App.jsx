@@ -11,19 +11,28 @@ export default function App() {
   const [loggedIn, setLoggedIn] = useState(false);
 
   return (
-    <div >
-      {
-        !loggedIn &&
-        <>
-          <Login username={username} setUsername={setUsername} loggedIn={loggedIn} setLoggedIn={setLoggedIn} />
+    <div id="screen">
+
+      {!loggedIn && (
+        <div className="login-stack">
+          <Login
+            username={username}
+            setUsername={setUsername}
+            loggedIn={loggedIn}
+            setLoggedIn={setLoggedIn}
+          />
+
           <Leaderboard />
+        </div>
+      )}
 
-        </>
+      {loggedIn && (
+        <div className="lobby-fullscreen">
+          <Lobby username={username} />
+        </div>
+      )}
 
-      }
-
-
-      {loggedIn && <Lobby username={username} />}
     </div>
   );
+
 }

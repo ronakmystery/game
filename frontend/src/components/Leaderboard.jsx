@@ -22,18 +22,7 @@ export default function Leaderboard() {
 
     return (
         <div
-            style={{
-                position: "absolute",
-                top: 20,
-                right: 20,
-                padding: "12px 18px",
-                background: "rgba(0,0,0,0.7)",
-                borderRadius: "12px",
-                color: "white",
-                fontFamily: "sans-serif",
-                width: "280px",
-                zIndex: 9999,
-            }}
+            id="leaderboard"
         >
             <h3 style={{ margin: 0, marginBottom: "10px", textAlign: "center" }}>
                 Leaderboard
@@ -43,7 +32,7 @@ export default function Leaderboard() {
             <div
                 style={{
                     display: "grid",
-                    gridTemplateColumns: "30px 1fr 40px 40px 50px",
+                    gridTemplateColumns: "30px 1fr 50px 50px 50px",
                     paddingBottom: "6px",
                     borderBottom: "1px solid rgba(255,255,255,0.2)",
                     marginBottom: "6px",

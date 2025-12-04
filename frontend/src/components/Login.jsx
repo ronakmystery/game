@@ -1,33 +1,44 @@
 import { useState, useEffect } from "react";
 
+const IP = "10.226.221.155";
 
-const IP = "10.226.221.155"
 export default function Login({ username, setUsername, loggedIn, setLoggedIn }) {
     const [password, setPassword] = useState("x");
     const [output, setOutput] = useState("");
     const [heartbeatInterval, setHeartbeatInterval] = useState(null);
+    const [pending, setPending] = useState(false);
 
     async function doLogin() {
-        const res = await fetch(`http://${IP}:8000/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
+        if (pending) return; // prevent spam
+        setPending(true);
+        setOutput("");
 
+        try {
+            const res = await fetch(`http://${IP}:8000/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
 
-        const json = await res.json();
-        setOutput(JSON.stringify(json, null, 2));
+            const json = await res.json();
+            setOutput(JSON.stringify(json, null, 2));
 
-        // If login was ok or auto-register, start heartbeat
-        if (json.status === "ok" || json.status === "registered") {
-            console.log("Login successful");
-            setLoggedIn(true);
-            startHeartbeat(username);
+            setTimeout(() => {
+                if (json.status === "ok" || json.status === "registered") {
+                    console.log("Login successful");
+                    setLoggedIn(true);
+                    startHeartbeat(username);
+                }
+                setPending(false);
+            }, 800);
+
+        } catch (err) {
+            setOutput("Login failed");
+            setPending(false);
         }
     }
 
     function startHeartbeat(user) {
-        // Avoid double intervals
         if (heartbeatInterval) return;
 
         const interval = setInterval(async () => {
@@ -39,16 +50,13 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
             } catch (err) {
                 console.error("Heartbeat failed:", err);
             }
-        }, 1000); // every 3 seconds
+        }, 1000);
 
         setHeartbeatInterval(interval);
     }
 
-    // Cleanup on unmount (stop heartbeat)
     useEffect(() => {
-        return () => {
-            if (heartbeatInterval) clearInterval(heartbeatInterval);
-        };
+        return () => heartbeatInterval && clearInterval(heartbeatInterval);
     }, [heartbeatInterval]);
 
     return (
@@ -61,7 +69,6 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                     />
-                    <br />
 
                     <input
                         type="password"
@@ -69,9 +76,14 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <br />
 
-                    <button onClick={doLogin}>Login</button>
+                    <button
+                        onClick={doLogin}
+                        disabled={pending}
+                        className={pending ? "login-btn-pending" : ""}
+                    >
+                        {pending ? "LOGGING IN..." : "LOGIN"}
+                    </button>
                 </>
             )}
 

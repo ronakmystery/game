@@ -24,6 +24,8 @@ import Joystick from "./components/Joystick";
 
 import Players from "./components/Players";
 
+const IP = "10.226.221.155";
+
 export default function Game({ username, setWorld, world }) {
     const { gameState, ws, me } = useGameSocket(username, world);
     const { fireBullet } = useShoot(ws, me);
@@ -60,6 +62,15 @@ export default function Game({ username, setWorld, world }) {
     };
 
 
+
+
+    async function leaveWorld() {
+        await fetch(`http://${IP}:8000/leave_world?username=${username}`, {
+            method: "POST"
+        });
+
+        setWorld(null);
+    }
 
     return (
         <div
@@ -153,9 +164,11 @@ export default function Game({ username, setWorld, world }) {
                 </div>
             )}
 
-            <button onClick={() => {
-                window.location.reload();
-            }}>Leave</button>
+            <button
+                id="leave-btn"
+                onClick={() => {
+                    leaveWorld();
+                }}>LEAVE</button>
 
 
         </div>

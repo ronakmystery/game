@@ -155,6 +155,23 @@ def join_world(username: str, world_name: str = None):
     }
 
 
+@router.post("/leave_world")
+def leave_world(username: str):
+    if username not in CURRENT_USERS:
+        raise HTTPException(400, "User not logged in")
+
+    world = PLAYER_WORLD[username]
+
+    # Remove from world
+    if world in WORLDS:
+        WORLDS[world]["players"].discard(username)
+        WORLDS[world]["last_active"] = time.time()
+
+    # Remove mapping
+    del PLAYER_WORLD[username]
+
+    return {"status": "left", "world": world}
+
 
 # ----------------------------------------------------------
 # GET CURRENT ACTIVE USERS

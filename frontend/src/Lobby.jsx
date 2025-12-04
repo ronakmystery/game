@@ -20,10 +20,10 @@ export default function Lobby({ username }) {
 
             <h1>Welcome, {username}!</h1>
 
-            {!world && <Leaderboard />}
+
             <Worlds username={username} setWorld={setWorld} />
 
-
+            {!world && <Leaderboard />}
 
 
         </div >

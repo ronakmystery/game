@@ -47,7 +47,9 @@ export default function Worlds({ username, setWorld }) {
 
     // CREATE WORLD
     async function createWorld() {
+        if (created === "pending") return; // prevent spam
         setError("");
+        setCreated("pending");
 
         try {
             const res = await fetch(
@@ -61,37 +63,41 @@ export default function Worlds({ username, setWorld }) {
         }
     }
 
+
     return (
-        <div id="worlds">
+        <div id="world-browser">
+
+            <div className="crt-overlay"></div>
 
 
-            <h2>World Browser</h2>
+            <button
+                className={`wb-btn ${created === "pending" ? "creating" : ""}`}
+                onClick={createWorld}
+                disabled={created === "pending"}
+            >
+                {created === "pending" ? "CREATING..." : "+ CREATE NEW WORLD"}
+            </button>
 
+            <h3 className="wb-sub">Available Worlds</h3>
 
-            <button onClick={createWorld}>Create New World</button>
-
-
-            <h3 style={{ marginTop: 20 }}>Available Worlds</h3>
-
-            <ul>
+            <ul className="wb-list">
                 {Object.entries(worlds).map(([wName, w]) => (
-                    <li key={wName} style={{ marginBottom: 10 }}>
-                        <b>{wName}</b> — players: {w.players.join(", ") || "none"}
-                        <br />
-                        port: {w.port}
-                        <br />
+                    <li className="wb-item" key={wName}>
+                        <div className="wb-name">{wName}</div>
 
-                        <button
-                            onClick={() => join(wName)}
-                            style={{ marginTop: 5 }}
-                        >
-                            Join
+                        <div className="wb-info">
+                            <div>Players: {w.players.join(", ") || "none"}</div>
+                            <div>Port: {w.port}</div>
+                        </div>
+
+                        <button className="wb-join" onClick={() => join(wName)}>
+                            JOIN
                         </button>
                     </li>
                 ))}
             </ul>
 
-
         </div>
     );
+
 }

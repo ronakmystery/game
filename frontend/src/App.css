@@ -1,22 +1,25 @@
-body {}
-
 #round {
     position: fixed;
     top: 20px;
     right: 20px;
     z-index: 100;
-    font-size: 40px;
+    font-size: 30px;
     color: red;
+    font-weight: bold;
+    text-shadow: 0 0 8px #f00;
+
 }
 
-
-
-#fire-button {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    z-index: 100;
-    font-size: 40px;
-    background: none;
+#leave-btn {
+    margin: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #200;
+    color: red;
+    text-shadow: 0 0 8px #f00;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
     border-radius: 10px;
+    box-shadow: 0 0 8px #f00;
 }

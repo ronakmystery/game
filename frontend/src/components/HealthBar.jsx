@@ -8,7 +8,7 @@ export default function HealthBar({ hp }) {
             top: 20,
             left: 20,
             width: 180,
-            height: 20,
+            height: 10,
             border: "2px solid #000",
             borderRadius: 10,
             overflow: "hidden",
