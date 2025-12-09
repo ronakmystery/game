@@ -13,7 +13,7 @@ def spawn_loot(z):
             "type": "health",
             "x": z["x"],
             "y": z["y"],
-            "value": random.randint(5, 30),
+            "value": random.randint(5, 20),
             "spawn_time": now,
         }
     else:
@@ -21,7 +21,7 @@ def spawn_loot(z):
             "type": "ammo",
             "x": z["x"],
             "y": z["y"],
-            "value": random.randint(10, 30),
+            "value": random.randint(5, 10),
             "spawn_time": now,
         }
 

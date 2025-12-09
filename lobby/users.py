@@ -10,7 +10,7 @@ from worlds import WORLDS, create_world     # <-- required for join_world
 router = APIRouter()
 
 
-IP = "10.226.221.155"
+IP = "10.192.46.155"
 
 # ----------------------------------------------------------
 # DB CONNECTION
@@ -191,9 +191,15 @@ def current_users():
 @router.get("/leaderboard")
 def leaderboard(limit: int = 7):
     cur = conn.cursor(pymysql.cursors.DictCursor)
+
     cur.execute("""
-        SELECT username, kills, max_round, survival_time, timestamp
+        SELECT 
+            username,
+            MAX(max_round) AS max_round,
+            MAX(kills) AS kills,
+            MAX(survival_time) AS survival_time
         FROM leaderboard
+        GROUP BY username
         ORDER BY max_round DESC, kills DESC, survival_time DESC
         LIMIT %s
     """, (limit,))

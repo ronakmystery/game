@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const IP = "10.226.221.155";
+const IP = "10.192.46.155";
 
 export default function Login({ username, setUsername, loggedIn, setLoggedIn }) {
     const [password, setPassword] = useState("");
@@ -96,7 +96,7 @@ export default function Login({ username, setUsername, loggedIn, setLoggedIn }) 
 
             <pre>{output ? output : `
 Designed and Developed by 
-Ronak Mistry + ChatGPT
+Ronak Mistry
             
 Frontend: [React]
 

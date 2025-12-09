@@ -4,7 +4,7 @@ export default function Scores({ gameState }) {
 
     const sorted = [...Object.values(gameState?.players || {})]
         .sort((a, b) => b.score - a.score)
-        .slice(0, 7);
+    // .slice(0, 7);
 
     return (
         <div style={styles.box}>

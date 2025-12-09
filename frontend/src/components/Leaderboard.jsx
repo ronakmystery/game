@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const IP = "10.226.221.155"
+const IP = "10.192.46.155"
 export default function Leaderboard() {
     const [rows, setRows] = useState([]);
 

@@ -26,7 +26,7 @@ import Scores from "./components/Scores";
 
 import Minimap from "./components/Minimap";
 
-const IP = "10.226.221.155";
+const IP = "10.192.46.155";
 
 
 

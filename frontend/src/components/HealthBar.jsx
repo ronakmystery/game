@@ -1,6 +1,22 @@
+import { useEffect, useRef, useState } from "react";
+
 export default function HealthBar({ hp }) {
-    // clamp 0–100
     const pct = Math.max(0, Math.min(100, hp || 0));
+
+    const [flash, setFlash] = useState(null); // "damage" or "heal"
+    const prevHp = useRef(pct);
+
+    useEffect(() => {
+        if (pct < prevHp.current) {
+            setFlash("damage");
+        } else if (pct > prevHp.current) {
+            setFlash("heal");
+        }
+        prevHp.current = pct;
+
+        const t = setTimeout(() => setFlash(null), 200);
+        return () => clearTimeout(t);
+    }, [pct]);
 
     return (
         <div style={{
@@ -8,12 +24,16 @@ export default function HealthBar({ hp }) {
             top: 10,
             left: 10,
             width: 180,
-            height: 10,
-            border: "2px solid #000",
+            height: 8,
             borderRadius: 10,
             overflow: "hidden",
             background: "red",
-            zIndex: 9999
+            zIndex: 9999,
+            boxShadow:
+                flash === "damage" ? "0 0 12px 4px rgba(255,0,0,0.7)" :
+                    flash === "heal" ? "0 0 12px 4px rgba(0,255,0,0.7)" :
+                        "none",
+            transition: "box-shadow 0.15s ease-out"
         }}>
             <div
                 style={{
@@ -24,19 +44,6 @@ export default function HealthBar({ hp }) {
                     transition: "width 0.1s linear"
                 }}
             />
-            <div style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: "100%",
-                color: "white",
-                fontWeight: "bold",
-                textAlign: "center",
-                lineHeight: "22px",
-                textShadow: "1px 1px 3px #000"
-            }}>
-            </div>
         </div>
     );
 }

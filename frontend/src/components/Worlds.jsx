@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const IP = "10.226.221.155"
+const IP = "10.192.46.155"
 export default function Worlds({ username, setWorld }) {
     const [worlds, setWorlds] = useState({});
     const [joined, setJoined] = useState(null);
@@ -98,10 +98,11 @@ export default function Worlds({ username, setWorld }) {
 
                         <button
                             className="wb-join"
-                            disabled={w.players.length >= 7}
+                            // disabled={w.players.length >= 4}
                             onClick={() => join(wName)}
                         >
-                            {w.players.length >= 7 ? "FULL" : "JOIN"}
+                            {/* {w.players.length >= 4 ? "FULL" : "JOIN"} */}
+                            JOIN
                         </button>
 
                     </li>

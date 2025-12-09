@@ -5,7 +5,7 @@ import random
 import string
 
 
-IP="10.226.221.155"
+IP="10.192.46.155"
 def random_text(length=6):
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=length))
 

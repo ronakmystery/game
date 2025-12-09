@@ -79,7 +79,7 @@ def player_shoot(username, fx, fy):
             continue
 
         # 🔥 AUTO-HIT if zombie extremely close
-        if dist < 1.3:
+        if dist < .1:
             dmg = calc_damage(p)
             z["hp"] -= dmg
 
@@ -94,7 +94,7 @@ def player_shoot(username, fx, fy):
         if dot <= 0:
             continue
 
-        if (dot / dist) > 0.999:
+        if (dot / dist) > 0.997:
             dmg = calc_damage(p)
             z["hp"] -= dmg
 
